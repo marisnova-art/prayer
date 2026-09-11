@@ -489,6 +489,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
 .set-note{margin:14px 0 0;font-size:.8rem;line-height:1.6;color:var(--text-4)}
 
 #setTitle:focus{outline:none}
+body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{display:none !important}
 .sync-pill{
   display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:var(--r-pill);
   border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.06);color:var(--text-2);font-size:.8rem;white-space:nowrap;
@@ -883,6 +884,23 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
     </section>
 
     <section class="set-section">
+      <h3 class="set-title">기기 동기화</h3>
+      <p class="bg-status" id="syncAcctStatus" style="margin-top:0"></p>
+      <div id="syncJoin" style="margin-top:12px">
+        <input class="sr-only" type="text" id="syncUser" autocomplete="username" tabindex="-1" aria-hidden="true" readonly>
+        <label class="field-label" for="syncCode">동기화 코드 <span class="hint">이 기기에서 한 번만 입력</span></label>
+        <div class="inline-row">
+          <input class="input" id="syncCode" type="password" autocomplete="current-password" placeholder="동기화 코드" enterkeyhint="go">
+          <button class="btn btn-primary" type="button" id="syncJoinBtn">연결</button>
+        </div>
+        <p class="cat-msg" id="syncMsg" aria-live="polite"></p>
+      </div>
+      <div class="inline-row" id="syncLeaveRow" style="margin-top:12px" hidden>
+        <button class="btn" type="button" id="syncLeaveBtn">이 기기 연결 해제</button>
+      </div>
+    </section>
+
+    <section class="set-section">
       <h3 class="set-title">Supabase 연결</h3>
       <div class="conn-card">
         <div class="conn-row"><span>상태</span><span id="connState"></span></div>
@@ -893,7 +911,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
       <div class="inline-row" style="margin-top:12px">
         <button class="btn" type="button" id="btnReload">다시 불러오기</button>
       </div>
-      <p class="set-note">로그인 화면 없이 이 브라우저 전용 익명 계정으로 연결됩니다. 다른 사람은 이 기도문을 볼 수 없지만, 브라우저 데이터를 지우면 이 계정으로 다시 들어올 수 없으니 중요한 기도문은 백업 파일로도 보관하세요.</p>
+      <p class="set-note">동기화 코드를 입력한 기기끼리는 같은 기도문이 실시간으로 보입니다. 코드를 입력하지 않은 기기는 그 브라우저 전용 계정을 쓰며, 브라우저 데이터를 지우면 그 전용 계정에는 다시 들어올 수 없습니다.</p>
     </section>
   </div>
 </dialog>
@@ -914,6 +932,14 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
    ===================================================================== */
 const SUPABASE_URL = 'https://fmlggfxhgdtjhconakro.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PEGiJnvBNs50kcu_60IVqQ_qLfmK4VP';
+
+/* ★ 여러 기기 동기화용 개인 계정 ★
+   Supabase 대시보드 → Authentication → Users → Add user 로 직접 만든 계정의 이메일.
+   실제로 메일을 받을 필요가 없으므로 개인 이메일 대신 아무 주소나 써도 됩니다.
+   (예: prayer-sync@myprayer.app  —  "Auto Confirm User" 체크)
+   ※ 비밀번호(= 동기화 코드)는 여기에 넣지 않습니다.
+      각 기기에서 설정 → 기기 동기화에 한 번만 입력하면 그 기기가 로그인 상태를 기억합니다. */
+const SYNC_ACCOUNT_EMAIL = '24story@gmail.com';
 
 /* =====================================================================
    데이터 저장 위치 정리
@@ -940,7 +966,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PEGiJnvBNs50kcu_60IVqQ_qLfmK4VP
    [이 브라우저에만 저장 — 기기별 화면 설정이라 DB에 올리지 않음]
      localStorage 'prayer.v1.settings' : 배경·블러·글자 크기·정렬 등 화면 설정
      localStorage 'prayer.v1.drafts'   : 작성 중 임시 보관본 (저장하면 삭제)
-     localStorage 'prayer.v1.auth'     : Supabase 익명 로그인 세션
+     localStorage 'prayer.v1.auth'     : Supabase 로그인 세션 (전용 계정 또는 동기화 계정)
+     localStorage 'prayer.v1.pendingMerge' : 동기화 계정으로 옮기는 중인 이 기기의 기도문 (완료 후 삭제)
      IndexedDB 'prayer-bg'             : 직접 선택한 배경 이미지
    ===================================================================== */
 
@@ -1206,6 +1233,24 @@ function renderHero(){
   }
   if (cloud.phase !== 'ready') {
     el.classList.add('hero-empty');
+    if (cloud.phase === 'locked') {
+      const keep = $('#lockCode') ? $('#lockCode').value : '';
+      el.innerHTML = `
+        <div class="hero-top"><span class="pill">동기화 코드 필요</span>${CROSS_MARK}</div>
+        <div class="hero-main">
+          <h2 class="hero-title">이 기기를<br>연결해 주세요</h2>
+          <p class="hero-excerpt">동기화 코드를 한 번 입력하면 다른 기기와 같은 기도문이 보이고, 다음부터는 입력 없이 바로 열립니다.</p>
+          <div class="inline-row" style="margin-top:22px">
+            <input class="sr-only" type="text" autocomplete="username" value="${esc(SYNC_ACCOUNT_EMAIL)}" tabindex="-1" aria-hidden="true" readonly>
+            <input class="input" id="lockCode" type="password" autocomplete="current-password" placeholder="동기화 코드" aria-label="동기화 코드" enterkeyhint="go">
+            <button class="btn btn-primary" type="button" id="lockBtn" data-action="unlock">연결</button>
+          </div>
+          <p class="cat-msg err" id="lockMsg" aria-live="polite"></p>
+        </div>
+        <div class="hero-bottom"><span>${esc(fmtDot(todayStr()))}</span><span></span><span>Supabase</span></div>`;
+      $('#lockCode').value = keep;
+      return;
+    }
     if (cloud.phase === 'error' || cloud.phase === 'config') {
       const cfg = cloud.phase === 'config';
       el.innerHTML = `
@@ -1278,6 +1323,16 @@ function renderList(){
   $('#btnClear').hidden = !state.q;
 
   if (cloud.phase !== 'ready') {
+    if (cloud.phase === 'locked') {
+      meta.textContent = '';
+      listEl.innerHTML = `
+        <div class="empty-state">
+          ${icon('info', 34)}
+          <h3>연결하면 기도문이 여기에 표시됩니다</h3>
+          <p>동기화 코드는 Supabase 대시보드에서 만든 동기화 계정의 비밀번호입니다.</p>
+        </div>`;
+      return;
+    }
     if (cloud.phase === 'error' || cloud.phase === 'config') {
       meta.textContent = '';
       listEl.innerHTML = `
@@ -1811,7 +1866,7 @@ function route(){
    ------------------------------------------------------------ */
 const cloud = {
   sb: null, user: null, channel: null,
-  phase: 'connecting',          // connecting | loading | ready | error | config
+  phase: 'connecting',          // connecting | loading | ready | error | config | locked
   error: '', pending: 0, realtime: 'off', lastLoad: 0, reloading: false,
   catReloadTimer: null
 };
@@ -1866,6 +1921,9 @@ function friendlyError(e){
   const code = String(e.code || '');
   const msg = String(e.message || e.error_description || e.msg || e);
   if (code === 'gone') return '이 기도문은 이미 삭제되었습니다.';
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) return '동기화 코드가 맞지 않습니다. 다시 확인해 주세요.';
+  if (code === 'email_not_confirmed' || /email not confirmed/i.test(msg)) return '동기화 계정이 아직 확인되지 않았습니다. 대시보드에서 계정을 만들 때 “Auto Confirm User”를 체크하세요.';
+  if (code === 'email_provider_disabled' || /email logins are disabled/i.test(msg)) return 'Supabase에서 Email 로그인이 꺼져 있습니다. Authentication → Sign In / Providers에서 Email을 켜 주세요.';
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return '인터넷에 연결되어 있지 않습니다. 연결되면 다시 시도하세요.';
   if (/anonymous sign-ins are disabled/i.test(msg) || code === 'anonymous_provider_disabled') {
     return 'Supabase에서 익명 로그인이 꺼져 있습니다. Authentication → Sign In / Providers에서 “Allow anonymous sign-ins”를 켜 주세요.';
@@ -2036,6 +2094,34 @@ function setBusy(btn, on, label){
 
 /* Previous localStorage version: move those prayers into the new account once. */
 const KEY_MIGRATED = 'prayer.v1.migrated';
+const KEY_PENDING = 'prayer.v1.pendingMerge';   // this device's prayers waiting to join the sync account
+const prayerSig = p => p.title + '\u0001' + String(p.content).trim();
+const SAMPLE_SIGS = new Set(makeSamples().map(prayerSig));
+
+function syncConfigured(){
+  const e = String(SYNC_ACCOUNT_EMAIL || '').trim();
+  return !!e && !e.includes('REPLACE_WITH') && /@/.test(e);
+}
+function isSyncUser(u){ return !!(u && !u.is_anonymous && u.email && syncConfigured() && u.email.toLowerCase() === SYNC_ACCOUNT_EMAIL.trim().toLowerCase()); }
+
+/* Moves prayers stashed from this device into the signed-in sync account.
+   Untouched starter samples and prayers that already exist there are skipped. */
+async function mergePending(){
+  const pending = store.get(KEY_PENDING, null);
+  if (!pending || !Array.isArray(pending.items) || !cloud.user || cloud.user.is_anonymous) return 0;
+  const have = new Set(items.map(prayerSig));
+  const add = pending.items.map(normalize).filter(Boolean)
+    .filter(p => !have.has(prayerSig(p)) && !SAMPLE_SIGS.has(prayerSig(p)))
+    .map(p => Object.assign(p, { id: uid() }));
+  if (add.length) {
+    const order = Array.isArray(pending.cats) ? pending.cats : [];
+    await ensureCategories(order.filter(c => add.some(p => p.category === c)).concat(add.map(p => p.category)));
+    const saved = await api.insertPrayers(add);
+    saved.forEach(upsertLocal);
+  }
+  store.set(KEY_PENDING, null);
+  return add.length;
+}
 function legacyLocalData(){
   if (store.get(KEY_MIGRATED, null)) return null;
   const raw = store.get(KEY_ITEMS, null);
@@ -2050,7 +2136,9 @@ async function loadCloudData(){
   if (!rows.length) {
     // First visit for this account: create categories and starter prayers.
     const legacy = legacyLocalData();
-    const seed = prayers.length ? [] : (legacy ? legacy.items : makeSamples());
+    const pending = store.get(KEY_PENDING, null);
+    const hasPending = !!(pending && Array.isArray(pending.items) && pending.items.length);
+    const seed = prayers.length ? [] : (legacy ? legacy.items : (hasPending ? [] : makeSamples()));
     const baseCats = (legacy ? legacy.categories : DEFAULT_CATS)
       .map(c => String(c).trim().slice(0, CAT_MAX)).filter(c => c && !RESERVED_CATS.includes(c));
     const names = [...new Set(baseCats.concat(prayers.concat(seed).map(p => p.category)))];
@@ -2096,25 +2184,112 @@ async function initCloud(){
     let session = got && got.data ? got.data.session : null;
     if (!session) {
       const res = await cloud.sb.auth.signInAnonymously();          // per-browser anonymous account
-      if (res.error) throw res.error;
+      if (res.error) {
+        // Anonymous accounts turned off (recommended once every device is linked): ask for the sync code.
+        const off = res.error.code === 'anonymous_provider_disabled' || /anonymous sign-ins are disabled/i.test(res.error.message || '');
+        if (off && syncConfigured()) {
+          if (run !== initRun) return;
+          cloud.user = null; cloud.phase = 'locked'; cloud.error = '';
+          setSync(); route();
+          return;
+        }
+        throw res.error;
+      }
       session = res.data.session;
     }
     if (run !== initRun) return;
     cloud.user = session.user;
-    cloud.phase = 'loading';
-    setSync();
-    await loadCloudData();
-    if (run !== initRun) return;
-    cloud.phase = 'ready';
-    setSync();
-    subscribeRealtime();
-    route();
+    await finishConnect(run);
   } catch (e) {
     if (run !== initRun) return;
     cloud.phase = 'error';
     cloud.error = friendlyError(e);
     setSync(); route();
   }
+}
+
+/* Loads the signed-in account, merges any stashed device data, then goes live. */
+async function finishConnect(run){
+  cloud.phase = 'loading';
+  setSync(); route();
+  await loadCloudData();
+  if (run !== initRun) return;
+  let moved = 0;
+  try { moved = await mergePending(); } catch (e) { toast(friendlyError(e) + ' 다음에 연결할 때 다시 옮깁니다.', 'info'); }
+  cloud.phase = 'ready';
+  setSync();
+  subscribeRealtime();
+  route();
+  if (moved) toast(`이 기기의 기도문 ${moved}개를 동기화 계정으로 옮겼습니다`, 'check');
+}
+
+/* Links this device to the shared sync account with the one-time sync code. */
+async function joinSync(codeInput, msgEl, btn){
+  const say = (t, err = true) => { if (msgEl) { msgEl.textContent = t; msgEl.classList.toggle('err', err); } };
+  if (!syncConfigured()) { say('index.html의 SYNC_ACCOUNT_EMAIL에 동기화 계정 이메일을 먼저 입력하세요.'); return; }
+  if (!cloud.sb) { say('Supabase에 연결된 뒤에 사용할 수 있습니다.'); return; }
+  const code = codeInput ? codeInput.value : '';
+  if (!code) { say('동기화 코드를 입력하세요.'); if (codeInput) codeInput.focus(); return; }
+  if (cloud.pending > 0 || state.saving) { say('저장이 끝난 뒤에 다시 시도하세요.'); return; }
+  say('', false);
+  setBusy(btn, true, '연결 중…');
+  // Stash this device's own prayers first, so nothing is lost if a later step fails.
+  const wasAnon = !!(cloud.user && cloud.user.is_anonymous);
+  const own = wasAnon ? items.filter(p => !SAMPLE_SIGS.has(prayerSig(p))) : [];
+  if (own.length) store.set(KEY_PENDING, { items: own, cats: catNames.slice(), at: Date.now() });
+  const run = ++initRun;
+  try {
+    const res = await cloud.sb.auth.signInWithPassword({ email: SYNC_ACCOUNT_EMAIL.trim(), password: code });
+    if (res.error) {
+      if (own.length) store.set(KEY_PENDING, null);   // still on this device's account; nothing to move
+      throw res.error;
+    }
+    if (codeInput) codeInput.value = '';
+    cloud.user = res.data.user;
+    items = []; setCatRows([]);
+    await finishConnect(run);
+    say('', false);
+    renderSyncSection();
+    if (!own.length) toast('동기화 계정에 연결했습니다', 'check');
+  } catch (e) {
+    say(friendlyError(e));
+    if (cloud.phase !== 'locked' && cloud.phase !== 'ready') { cloud.phase = 'error'; cloud.error = friendlyError(e); setSync(); route(); }
+  } finally {
+    setBusy(btn, false);
+  }
+}
+
+async function leaveSync(){
+  const ok = await confirmDialog({
+    title: '이 기기의 연결을 해제할까요?',
+    message: '기도문은 동기화 계정에 그대로 남고 다른 기기에서도 계속 보입니다. 이 기기는 다시 동기화 코드를 입력하기 전까지 전용 계정으로 시작합니다.',
+    confirm: '연결 해제', danger: true
+  });
+  if (!ok) return;
+  try { await cloud.sb.auth.signOut({ scope: 'local' }); } catch (e) { /* local session is cleared regardless */ }
+  if (cloud.channel) { try { cloud.sb.removeChannel(cloud.channel); } catch (e) {} cloud.channel = null; }
+  cloud.user = null; cloud.realtime = 'off';
+  items = []; setCatRows([]);
+  closeSettings();
+  go('#/', { replace:true });
+  await initCloud();
+  toast('이 기기의 동기화 연결을 해제했습니다', 'check');
+}
+
+function renderSyncSection(){
+  const st = $('#syncAcctStatus');
+  if (!st) return;
+  const configured = syncConfigured();
+  const synced = isSyncUser(cloud.user);
+  $('#syncUser').value = configured ? SYNC_ACCOUNT_EMAIL.trim() : '';
+  $('#syncJoin').hidden = !configured || synced;
+  $('#syncLeaveRow').hidden = !synced;
+  st.classList.toggle('warn', !configured);
+  st.textContent = !configured
+    ? 'index.html 상단의 SYNC_ACCOUNT_EMAIL에 동기화 계정 이메일을 입력하면 여러 기기에서 같은 기도문을 볼 수 있습니다.'
+    : synced
+      ? '동기화 계정에 연결되어 있습니다. 이 계정에 연결된 모든 기기에 같은 기도문이 실시간으로 보입니다.'
+      : '지금은 이 기기 전용 계정을 쓰고 있습니다. 동기화 코드를 입력하면 이 기기의 기도문을 동기화 계정으로 옮기고 다른 기기와 함께 봅니다.';
 }
 
 async function softReload({ notify = false } = {}){
@@ -2210,12 +2385,14 @@ function setSync(){
   let st, text;
   if (cloud.phase === 'config') { st = 'error'; text = '연결 설정 필요'; }
   else if (cloud.phase === 'error') { st = 'error'; text = '연결 오류'; }
+  else if (cloud.phase === 'locked') { st = 'offline'; text = '동기화 코드 필요'; }
   else if (typeof navigator !== 'undefined' && navigator.onLine === false) { st = 'offline'; text = '오프라인'; }
   else if (cloud.phase === 'connecting') { st = 'busy'; text = '연결 중…'; }
   else if (cloud.phase === 'loading' || cloud.reloading) { st = 'busy'; text = '불러오는 중…'; }
   else if (cloud.pending > 0) { st = 'busy'; text = '저장 중…'; }
   else { st = 'ok'; text = '동기화됨'; }
   pill.dataset.state = st;
+  document.body.dataset.cloud = cloud.phase;     // hides "새 기도문" until the database is ready
   pill.querySelector('.sync-text').textContent = text;
   pill.title = st === 'error' ? cloud.error + ' (눌러서 다시 시도)' : 'Supabase: ' + text;
   pill.setAttribute('aria-label', 'Supabase 동기화 상태: ' + text);
@@ -2224,13 +2401,14 @@ function setSync(){
 function renderConnInfo(){
   const s = $('#connState');
   if (!s) return;
-  const labels = { connecting:'연결 중', loading:'불러오는 중', ready:'연결됨', error:'오류', config:'설정 필요' };
+  const labels = { connecting:'연결 중', loading:'불러오는 중', ready:'연결됨', error:'오류', config:'설정 필요', locked:'동기화 코드 필요' };
   s.textContent = cloud.error && cloud.phase !== 'ready' ? `${labels[cloud.phase]} — ${cloud.error}` : labels[cloud.phase];
   s.className = cloud.phase === 'ready' ? 'is-ok' : (cloud.phase === 'error' || cloud.phase === 'config' ? 'is-err' : '');
   let host = '-';
   try { host = new URL(SUPABASE_URL).hostname; } catch (e) {}
   $('#connHost').textContent = host;
-  $('#connUser').textContent = cloud.user ? `익명 계정 ${cloud.user.id.slice(0, 8)}…` : '-';
+  $('#connUser').textContent = !cloud.user ? '-' : isSyncUser(cloud.user) ? '동기화 계정 (여러 기기 공유)' : `이 기기 전용 계정 ${cloud.user.id.slice(0, 8)}…`;
+  renderSyncSection();
   const rt = { SUBSCRIBED:'켜짐', CHANNEL_ERROR:'연결 실패 (새로고침 시 반영)', TIMED_OUT:'시간 초과 (재시도 중)', CLOSED:'꺼짐', off:'-' };
   $('#connRealtime').textContent = rt[cloud.realtime] || cloud.realtime;
 }
@@ -3072,6 +3250,7 @@ function bindEvents(){
       if (a === 'new') go('#/new');
       else if (a === 'settings') openSettings();
       else if (a === 'retry') initCloud();
+      else if (a === 'unlock') joinSync($('#lockCode'), $('#lockMsg'), act);
       else if (a === 'back') goBack('#/');
       else if (a === 'clear-search') { state.q = ''; $('#q').value = ''; renderList(); $('#q').focus(); }
       else if (a === 'reset-filters') { state.q = ''; state.cat = 'all'; $('#q').value = ''; renderChips(); renderList(); }
@@ -3304,7 +3483,18 @@ function bindEvents(){
   });
   $('#syncPill').addEventListener('click', () => {
     if (cloud.phase === 'error' || cloud.phase === 'config') initCloud();
+    else if (cloud.phase === 'locked') { const c = $('#lockCode'); if (c) c.focus(); }
     else openSettings();
+  });
+  $('#syncJoinBtn').addEventListener('click', e => joinSync($('#syncCode'), $('#syncMsg'), e.currentTarget));
+  $('#syncCode').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); joinSync($('#syncCode'), $('#syncMsg'), $('#syncJoinBtn')); }
+  });
+  $('#syncLeaveBtn').addEventListener('click', leaveSync);
+  document.addEventListener('keydown', e => {
+    if (e.target && e.target.id === 'lockCode' && e.key === 'Enter' && !e.isComposing) {
+      e.preventDefault(); joinSync($('#lockCode'), $('#lockMsg'), $('#lockBtn'));
+    }
   });
   $('#btnReload').addEventListener('click', () => {
     if (cloud.phase === 'ready') softReload({ notify:true }); else initCloud();
