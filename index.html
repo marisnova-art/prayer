@@ -911,7 +911,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
       <div class="inline-row" style="margin-top:12px">
         <button class="btn" type="button" id="btnReload">다시 불러오기</button>
       </div>
-      <p class="set-note">동기화 코드를 입력한 기기끼리는 같은 기도문이 실시간으로 보입니다. 코드를 입력하지 않은 기기는 그 브라우저 전용 계정을 쓰며, 브라우저 데이터를 지우면 그 전용 계정에는 다시 들어올 수 없습니다.</p>
+      <p class="set-note" id="connNote"></p>
     </section>
   </div>
 </dialog>
@@ -933,13 +933,14 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 const SUPABASE_URL = 'https://fmlggfxhgdtjhconakro.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PEGiJnvBNs50kcu_60IVqQ_qLfmK4VP';
 
-/* ★ 여러 기기 동기화용 개인 계정 ★
-   Supabase 대시보드 → Authentication → Users → Add user 로 직접 만든 계정의 이메일.
-   실제로 메일을 받을 필요가 없으므로 개인 이메일 대신 아무 주소나 써도 됩니다.
-   (예: prayer-sync@myprayer.app  —  "Auto Confirm User" 체크)
-   ※ 비밀번호(= 동기화 코드)는 여기에 넣지 않습니다.
-      각 기기에서 설정 → 기기 동기화에 한 번만 입력하면 그 기기가 로그인 상태를 기억합니다. */
+/* ★ 모든 기기 자동 동기화 계정 ★
+   Supabase 대시보드 → Authentication → Users → Add user → Create new user 로 만든 계정.
+   ("Auto Confirm User" 반드시 체크, 메일을 실제로 받을 필요는 없어 아무 주소나 가능)
+   이메일과 비밀번호를 모두 넣으면 어느 기기에서 열든 이 계정으로 자동 연결되어
+   모든 기기에 같은 기도문이 실시간으로 보입니다. 입력 화면은 나타나지 않습니다.
+   ※ 비밀번호를 비워 두면(REPLACE_… 그대로) 기기마다 설정에서 동기화 코드를 한 번 입력하는 방식으로 동작합니다. */
 const SYNC_ACCOUNT_EMAIL = '24story@gmail.com';
+const SYNC_ACCOUNT_PASSWORD = '8238';
 
 /* =====================================================================
    데이터 저장 위치 정리
@@ -966,7 +967,7 @@ const SYNC_ACCOUNT_EMAIL = '24story@gmail.com';
    [이 브라우저에만 저장 — 기기별 화면 설정이라 DB에 올리지 않음]
      localStorage 'prayer.v1.settings' : 배경·블러·글자 크기·정렬 등 화면 설정
      localStorage 'prayer.v1.drafts'   : 작성 중 임시 보관본 (저장하면 삭제)
-     localStorage 'prayer.v1.auth'     : Supabase 로그인 세션 (전용 계정 또는 동기화 계정)
+     localStorage 'prayer.v1.auth'     : Supabase 로그인 세션 (자동 동기화 계정 / 전용 계정)
      localStorage 'prayer.v1.pendingMerge' : 동기화 계정으로 옮기는 중인 이 기기의 기도문 (완료 후 삭제)
      IndexedDB 'prayer-bg'             : 직접 선택한 배경 이미지
    ===================================================================== */
@@ -1921,6 +1922,7 @@ function friendlyError(e){
   const code = String(e.code || '');
   const msg = String(e.message || e.error_description || e.msg || e);
   if (code === 'gone') return '이 기도문은 이미 삭제되었습니다.';
+  if (code === 'auto_credentials') return 'index.html의 SYNC_ACCOUNT_EMAIL 또는 SYNC_ACCOUNT_PASSWORD가 Supabase에 만든 계정과 다릅니다. 대시보드 → Authentication → Users에서 이메일을 확인하고, 필요하면 비밀번호를 새로 정해 같은 값으로 입력하세요.';
   if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) return '동기화 코드가 맞지 않습니다. 다시 확인해 주세요.';
   if (code === 'email_not_confirmed' || /email not confirmed/i.test(msg)) return '동기화 계정이 아직 확인되지 않았습니다. 대시보드에서 계정을 만들 때 “Auto Confirm User”를 체크하세요.';
   if (code === 'email_provider_disabled' || /email logins are disabled/i.test(msg)) return 'Supabase에서 Email 로그인이 꺼져 있습니다. Authentication → Sign In / Providers에서 Email을 켜 주세요.';
@@ -2102,6 +2104,19 @@ function syncConfigured(){
   const e = String(SYNC_ACCOUNT_EMAIL || '').trim();
   return !!e && !e.includes('REPLACE_WITH') && /@/.test(e);
 }
+function autoSyncConfigured(){
+  const pw = String(SYNC_ACCOUNT_PASSWORD || '');
+  return syncConfigured() && !!pw && !pw.includes('REPLACE_WITH');
+}
+/* Adds prayers to the carry-over stash (kept across attempts until merged). */
+function stashPending(list, catsOrder){
+  const prev = store.get(KEY_PENDING, null);
+  const merged = (prev && Array.isArray(prev.items)) ? prev.items.slice() : [];
+  const seen = new Set(merged.map(prayerSig));
+  list.forEach(p => { const k = prayerSig(p); if (!seen.has(k)) { seen.add(k); merged.push(p); } });
+  const cats0 = [...new Set([...(prev && Array.isArray(prev.cats) ? prev.cats : []), ...catsOrder])];
+  if (merged.length) store.set(KEY_PENDING, { items: merged, cats: cats0, at: Date.now() });
+}
 function isSyncUser(u){ return !!(u && !u.is_anonymous && u.email && syncConfigured() && u.email.toLowerCase() === SYNC_ACCOUNT_EMAIL.trim().toLowerCase()); }
 
 /* Moves prayers stashed from this device into the signed-in sync account.
@@ -2182,7 +2197,22 @@ async function initCloud(){
   try {
     const got = await cloud.sb.auth.getSession();
     let session = got && got.data ? got.data.session : null;
-    if (!session) {
+    if (autoSyncConfigured() && !isSyncUser(session && session.user)) {
+      // Every device signs in to the same account automatically.
+      if (session && session.user && session.user.is_anonymous) {
+        // This device used its own account before: carry its prayers over first.
+        cloud.user = session.user;
+        const [own, ownCats] = await Promise.all([api.fetchAllPrayers(), api.fetchCategories()]);
+        stashPending(own.filter(p => !SAMPLE_SIGS.has(prayerSig(p))), ownCats.map(r => r.name));
+      }
+      const res = await cloud.sb.auth.signInWithPassword({ email: SYNC_ACCOUNT_EMAIL.trim(), password: SYNC_ACCOUNT_PASSWORD });
+      if (res.error) {
+        const bad = res.error.code === 'invalid_credentials' || /invalid login credentials/i.test(res.error.message || '');
+        if (bad) throw { code: 'auto_credentials', message: 'auto sync credentials rejected' };
+        throw res.error;
+      }
+      session = res.data.session || { user: res.data.user };
+    } else if (!session) {
       const res = await cloud.sb.auth.signInAnonymously();          // per-browser anonymous account
       if (res.error) {
         // Anonymous accounts turned off (recommended once every device is linked): ask for the sync code.
@@ -2280,12 +2310,16 @@ function renderSyncSection(){
   const st = $('#syncAcctStatus');
   if (!st) return;
   const configured = syncConfigured();
+  const auto = autoSyncConfigured();
   const synced = isSyncUser(cloud.user);
   $('#syncUser').value = configured ? SYNC_ACCOUNT_EMAIL.trim() : '';
-  $('#syncJoin').hidden = !configured || synced;
-  $('#syncLeaveRow').hidden = !synced;
+  $('#syncJoin').hidden = !configured || synced || auto;
+  $('#syncLeaveRow').hidden = !synced || auto;
   st.classList.toggle('warn', !configured);
-  st.textContent = !configured
+  st.textContent = auto
+    ? (synced ? '모든 기기가 같은 계정으로 자동 연결되어 있습니다. 어느 기기에서 쓰든 같은 기도문이 실시간으로 보입니다.'
+              : '모든 기기가 같은 계정으로 자동 연결됩니다. 연결 중이거나 연결에 실패했다면 아래 Supabase 연결 상태를 확인하세요.')
+    : !configured
     ? 'index.html 상단의 SYNC_ACCOUNT_EMAIL에 동기화 계정 이메일을 입력하면 여러 기기에서 같은 기도문을 볼 수 있습니다.'
     : synced
       ? '동기화 계정에 연결되어 있습니다. 이 계정에 연결된 모든 기기에 같은 기도문이 실시간으로 보입니다.'
@@ -2411,6 +2445,9 @@ function renderConnInfo(){
   renderSyncSection();
   const rt = { SUBSCRIBED:'켜짐', CHANNEL_ERROR:'연결 실패 (새로고침 시 반영)', TIMED_OUT:'시간 초과 (재시도 중)', CLOSED:'꺼짐', off:'-' };
   $('#connRealtime').textContent = rt[cloud.realtime] || cloud.realtime;
+  $('#connNote').textContent = autoSyncConfigured()
+    ? '이 주소를 여는 모든 기기가 같은 계정으로 자동 연결되어 같은 기도문을 봅니다. 주소를 아는 사람은 로그인 없이 볼 수 있으니 주소를 공유하지 마시고, 중요한 기도문은 백업 파일로도 보관하세요.'
+    : '동기화 코드를 입력한 기기끼리는 같은 기도문이 실시간으로 보입니다. 코드를 입력하지 않은 기기는 그 브라우저 전용 계정을 쓰며, 브라우저 데이터를 지우면 그 전용 계정에는 다시 들어올 수 없습니다.';
 }
 
 /* ------------------------------------------------------------
