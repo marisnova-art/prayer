@@ -186,7 +186,17 @@ body.has-photo .bg-veil{
 }
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 26px}
 .brand{display:flex;align-items:baseline;gap:12px;color:inherit;text-decoration:none;min-width:0}
-.brand-en{font-size:clamp(1.75rem,2.6vw,2.25rem);font-weight:200;letter-spacing:-.035em;line-height:1}
+.brand{gap:10px}
+.brand-mark{
+  width:clamp(34px,3.4vw,40px);height:clamp(34px,3.4vw,40px);flex-shrink:0;align-self:center;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:12px;
+  filter:drop-shadow(0 4px 14px rgba(0,0,0,.45));
+}
+.brand-mark svg{width:100%;height:100%}
+.brand-en{
+  font-size:clamp(1.85rem,2.8vw,2.4rem);font-weight:600;letter-spacing:-.045em;line-height:1;
+  color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.5);
+}
 .brand-ko{font-size:.84rem;color:var(--text-3)}
 .brand-date{font-size:.82rem;color:var(--text-4);margin-left:6px}
 .topbar-actions{display:flex;align-items:center;gap:10px}
@@ -237,6 +247,17 @@ body.has-photo .bg-veil{
 }
 @media (hover:hover){.circle-btn:hover{background:rgba(255,255,255,.14)}}
 .hero-empty .hero-excerpt{white-space:normal}
+.verse-body{
+  margin:0;font-family:var(--font-read);font-size:clamp(1.12rem,1.45vw,1.35rem);line-height:1.95;
+  color:rgba(255,255,255,.96);letter-spacing:.004em;
+  display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden;
+}
+.verse-ref{
+  display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:.94rem;font-weight:500;
+  color:#fff;letter-spacing:.01em;
+}
+.verse-ref::before{content:"";width:22px;height:1px;background:rgba(255,255,255,.65);flex-shrink:0}
+.verse-src{font-size:.78rem;color:var(--text-4)}
 .hero-empty .btn{margin-top:26px;align-self:flex-start}
 
 /* toolbar */
@@ -454,13 +475,24 @@ dialog.modal::backdrop{background:rgba(4,9,6,.55);-webkit-backdrop-filter:blur(4
 dialog.modal[open] .modal-panel{animation:pop .24s var(--ease)}
 @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 .modal-panel{
-  padding:28px;max-height:calc(100vh - 40px);overflow:auto;
+  --panel-pad:28px;
+  padding:var(--panel-pad);max-height:calc(100vh - 40px);overflow:auto;
+  scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:contain;
   background:linear-gradient(155deg, rgba(58,78,68,.62), rgba(18,30,24,.72));
 }
 .modal-title{margin:0 0 8px;font-size:1.2rem;font-weight:500;letter-spacing:-.01em}
 .modal-msg{margin:0 0 26px;color:var(--text-2);font-size:.95rem;line-height:1.7}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end}
 dialog.settings{width:min(560px, calc(100vw - 32px))}
+/* The OS scrollbar looks foreign inside the glass sheet: hide it and mark the
+   scrollable edge with a soft fade instead. Wheel, touch and keys still scroll. */
+.modal-panel::-webkit-scrollbar{width:0;height:0;display:none}
+.modal-panel::after{
+  content:"";position:sticky;bottom:calc(-1 * var(--panel-pad));z-index:3;
+  display:block;height:56px;margin:calc(-1 * var(--panel-pad) - 12px) calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad));
+  background:linear-gradient(rgba(14,26,20,0), rgba(14,26,20,.72));
+  border-radius:0 0 var(--r-xl) var(--r-xl);pointer-events:none;
+}
 .set-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .set-section{padding:20px 0;border-top:1px solid rgba(255,255,255,.1)}
 .set-section:first-of-type{border-top:0;padding-top:12px}
@@ -599,6 +631,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
   .hero{min-height:auto;padding:22px 22px 20px;border-radius:26px}
   .hero-main{padding-top:40px}
   .hero-title{font-size:2rem}
+  .verse-body{font-size:1.08rem;line-height:1.9;-webkit-line-clamp:7}
   .hero-bottom{padding-top:28px}
   .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding:0 16px 2px}
   .chips::-webkit-scrollbar{display:none}
@@ -619,6 +652,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
   .textarea-prayer{min-height:240px}
   dialog.settings{width:100%;margin:auto 0 0;max-height:90vh}
   dialog.settings .modal-panel{border-radius:26px 26px 0 0;max-height:90vh;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  dialog.settings .modal-panel::after{border-radius:0;bottom:calc(-28px - env(safe-area-inset-bottom));margin-bottom:calc(-28px - env(safe-area-inset-bottom))}
 }
 @media (max-width:380px){
   .cat-grid{grid-template-columns:repeat(2,1fr)}
@@ -640,6 +674,9 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 <div class="app">
   <header class="topbar">
     <a class="brand" href="#/" data-nav aria-label="기도문 홈">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40"><defs><linearGradient id="bmG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.3)"/><stop offset="1" stop-color="rgba(255,255,255,.05)"/></linearGradient></defs><rect x=".8" y=".8" width="38.4" height="38.4" rx="11.5" fill="url(#bmG)" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/><path d="M20 9.5v21M13 16h14" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </span>
       <span class="brand-en">Prayer</span>
       <span class="brand-ko">기도문</span>
       <span class="brand-date" id="brandDate"></span>
@@ -776,6 +813,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 
 <button class="fab" type="button" data-action="new" id="fab"></button>
 
+
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastIcon"></span><span id="toastText"></span></div>
 
 <!-- Confirm dialog -->
@@ -884,6 +922,16 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
     </section>
 
     <section class="set-section">
+      <h3 class="set-title">오늘의 말씀</h3>
+      <p class="bg-status" id="verseStatus" style="margin-top:0"></p>
+      <div class="inline-row" style="margin-top:12px">
+        <button class="btn" type="button" id="verseReload">다시 불러오기</button>
+        <button class="btn" type="button" id="verseClear">받아 둔 말씀 지우기</button>
+      </div>
+      <p class="set-note">성경 본문은 파일에 들어 있지 않고, 그날의 말씀이 속한 책 한 권만 내려받아 이 브라우저에 보관합니다. index.html 과 같은 위치에 bible 폴더를 올려 두면 그 파일을 먼저 씁니다.</p>
+    </section>
+
+    <section class="set-section">
       <h3 class="set-title">기기 동기화</h3>
       <p class="bg-status" id="syncAcctStatus" style="margin-top:0"></p>
       <div id="syncJoin" style="margin-top:12px">
@@ -930,8 +978,8 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
                               ※ Secret key / service_role key 는 절대 넣지 마세요.
                                  넣으면 앱이 연결을 거부합니다.
    ===================================================================== */
-const SUPABASE_URL = 'https://fmlggfxhgdtjhconakro.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PEGiJnvBNs50kcu_60IVqQ_qLfmK4VP';
+const SUPABASE_URL = 'https://YOUR-PROJECT-REF.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_REPLACE_WITH_YOUR_KEY';
 
 /* ★ 모든 기기 자동 동기화 계정 ★
    Supabase 대시보드 → Authentication → Users → Add user → Create new user 로 만든 계정.
@@ -939,8 +987,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_PEGiJnvBNs50kcu_60IVqQ_qLfmK4VP
    이메일과 비밀번호를 모두 넣으면 어느 기기에서 열든 이 계정으로 자동 연결되어
    모든 기기에 같은 기도문이 실시간으로 보입니다. 입력 화면은 나타나지 않습니다.
    ※ 비밀번호를 비워 두면(REPLACE_… 그대로) 기기마다 설정에서 동기화 코드를 한 번 입력하는 방식으로 동작합니다. */
-const SYNC_ACCOUNT_EMAIL = '24story@gmail.com';
-const SYNC_ACCOUNT_PASSWORD = '8238';
+const SYNC_ACCOUNT_EMAIL = 'REPLACE_WITH_SYNC_ACCOUNT_EMAIL';
+const SYNC_ACCOUNT_PASSWORD = 'REPLACE_WITH_SYNC_ACCOUNT_PASSWORD';
 
 /* =====================================================================
    데이터 저장 위치 정리
@@ -957,7 +1005,7 @@ const SYNC_ACCOUNT_PASSWORD = '8238';
      memo            → memo          text
      favorite        → is_favorite   boolean
      createdAt (ms)  → created_at    timestamptz
-     updatedAt (ms)  → updated_at    timestamptz   본문 수정 시각 (즐겨찾기는 바꾸지 않음)
+     updatedAt (ms)  → updated_at    timestamptz   본문 수정 시각 (중요 표시는 바꾸지 않음)
 
    [Supabase · public.prayer_categories]  설정 → 카테고리 목록
      카테고리 이름     → name          text          계정별 중복 불가
@@ -975,8 +1023,11 @@ const SYNC_ACCOUNT_PASSWORD = '8238';
 /* ------------------------------------------------------------
    Constants & helpers
    ------------------------------------------------------------ */
-const DEFAULT_CATS = ['감사','회개','가족','건강','일과 사업','관계','미래','나라와 사회','개인기도','기타'];
-const RESERVED_CATS = ['전체','즐겨찾기'];
+const DEFAULT_CATS = ['성령','사도신경','주기도문','묵상','감사','회개','가족','중보','성취','신념','간구','건강','관계','일상','기타'];
+const RESERVED_CATS = ['전체','중요','즐겨찾기'];
+/* One-time tidy-up: accounts still holding the previous default list get the new one. */
+const OLD_DEFAULT_CATS = ['감사','회개','가족','건강','일과 사업','관계','미래','나라와 사회','개인기도','기타'];
+const CAT_RENAMES = { '일과 사업':'일상', '미래':'신념', '나라와 사회':'중보', '개인기도':'묵상' };
 const CAT_MAX = 12;
 function cats(){ return catNames; }
 const KEY_ITEMS = 'prayer.v1.items';
@@ -1101,11 +1152,11 @@ function makeSamples(){
       content:'주님, 오늘 하루를 돌아보며 주님 앞에 섭니다.\n조급한 마음에 가까운 사람에게 날카로운 말을 했고,\n해야 할 일을 미루면서 핑계를 먼저 찾았습니다.\n\n제 안의 교만과 두려움을 주님께 내려놓습니다.\n정죄가 아닌 용서로 저를 다시 일으켜 주시는 은혜에 감사합니다.\n\n내일은 조금 더 천천히 말하고, 조금 더 깊이 듣는 사람이 되게 하소서.\n상처를 준 이에게 먼저 다가갈 용기를 주세요.\n\n예수님의 이름으로 기도합니다. 아멘.' },
     { title:'회복을 구하는 기도', category:'건강', d:-5, fav:false, tags:['치유','회복'], memo:'다음 진료 전까지 매일 저녁 기도',
       content:'치유의 하나님, 연약한 몸을 주님께 맡겨 드립니다.\n아픔 속에서도 저를 떠나지 않으시는 주님을 신뢰합니다.\n\n치료를 돕는 의료진의 손길에 지혜를 더해 주시고,\n회복의 시간 동안 조급해하지 않고 기다릴 수 있는 인내를 주세요.\n\n몸이 아플 때 마음까지 무너지지 않도록 붙들어 주시고,\n곁에서 돌보는 이들에게도 새 힘을 부어 주소서.\n\n예수님의 이름으로 기도합니다. 아멘.' },
-    { title:'일터에서 드리는 기도', category:'일과 사업', d:-8, fav:false, tags:['일터','지혜'], memo:'새 프로젝트를 시작하는 주간',
+    { title:'일터에서 드리는 기도', category:'일상', d:-8, fav:false, tags:['일터','지혜'], memo:'새 프로젝트를 시작하는 주간',
       content:'주님, 제게 맡겨 주신 일을 감사함으로 받습니다.\n결과에 쫓기기보다 과정 속에서 정직하게 일하게 하소서.\n\n어려운 결정 앞에서 지혜를 주시고,\n함께 일하는 동료들을 경쟁자가 아닌 이웃으로 대하게 해 주세요.\n\n성공할 때 교만하지 않고, 실패할 때 낙심하지 않도록\n모든 수고의 끝에 주님이 계심을 기억하게 하소서.\n\n예수님의 이름으로 기도합니다. 아멘.' },
-    { title:'이 땅을 위한 기도', category:'나라와 사회', d:-12, fav:false, tags:['이웃','평화'], memo:'',
+    { title:'이 땅을 위한 기도', category:'중보', d:-12, fav:false, tags:['이웃','평화'], memo:'',
       content:'공의와 사랑의 하나님, 우리가 사는 이 땅을 주님께 올려 드립니다.\n나라를 이끄는 이들에게 겸손과 지혜를 주시고,\n서로 다른 생각을 가진 사람들이 존중하며 대화하게 하소서.\n\n외롭고 소외된 이웃을 돌아보는 눈을 열어 주시고,\n일상의 작은 친절이 모여 따뜻한 사회가 되게 해 주세요.\n\n다툼이 있는 곳에 화해를, 두려움이 있는 곳에 평안을 허락하소서.\n\n예수님의 이름으로 기도합니다. 아멘.' },
-    { title:'앞길을 맡기는 기도', category:'미래', d:-20, fav:false, tags:['인도하심','결정'], memo:'진로를 정하기 전 한 달 동안',
+    { title:'앞길을 맡기는 기도', category:'신념', d:-20, fav:false, tags:['인도하심','결정'], memo:'진로를 정하기 전 한 달 동안',
       content:'주님, 아직 보이지 않는 내일을 주님께 맡깁니다.\n계획대로 되지 않는 일들 앞에서 불안해하던 마음을 내려놓습니다.\n\n제가 가야 할 길을 한 걸음씩 비추어 주시고,\n문이 닫힐 때에도 주님의 선하심을 신뢰하게 하소서.\n\n조급함 대신 기다림을, 두려움 대신 소망을 품고\n오늘 할 수 있는 일에 충실한 사람이 되게 해 주세요.\n\n예수님의 이름으로 기도합니다. 아멘.' }
   ];
   return raw.map((s, i) => normalize({
@@ -1153,7 +1204,7 @@ const state = {
   route: null, homeScroll: 0,
   editId: null, editBase: '', tags: [],
   heroIntroDone: false,
-  saving: false, catBusy: false
+  saving: false, catBusy: false, verseSeed: null
 };
 const deletedIds = new Set();
 
@@ -1217,6 +1268,199 @@ function snippet(content, toks, len = 120){
 }
 
 /* ------------------------------------------------------------
+   Bible — 성경전서 개역한글판 (대한성서공회)
+   The text is NOT embedded in this file. Only the table of contents below is
+   (about 5 KB: each book's Korean name, file name and per-chapter verse counts).
+   That is enough to pick one verse out of all 31,102 and to know its reference,
+   so only the single book that verse belongs to is downloaded — a few tens of KB.
+   Each book is then kept in this browser (IndexedDB), so it is fetched once.
+
+   ★ 말씀 파일 위치 ★  아래 순서대로 시도하고, 처음 성공한 곳을 기억합니다.
+     1) bible/<책이름>.txt   — index.html 과 같은 곳에 bible 폴더를 올린 경우 (권장)
+     2) jsDelivr CDN         — 아무것도 올리지 않아도 바로 동작하는 예비 경로
+   ------------------------------------------------------------ */
+const BIBLE_SOURCES = [
+  { base: 'bible/', ext: 'txt' },
+  { base: 'https://cdn.jsdelivr.net/gh/bluesaurel/Korean-Bible-1961-KRV@2fdb91e77d323b99bacaa9b61fc18f318b703240/data/', ext: 'json' }
+];
+const KEY_BIBLE_SRC = 'prayer.v1.bibleSource';
+/* [한글 책이름, 파일 이름, [1장 절수, 2장 절수, …]] × 66권 */
+const BIBLE_INDEX = [["창세기","Genesis",[31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,23,57,38,34,34,28,34,31,22,33,26]],["출애굽기","Exodus",[22,25,22,31,23,30,25,32,35,29,10,51,22,31,27,36,16,27,25,26,36,31,33,18,40,37,21,43,46,38,18,35,23,35,35,38,29,31,43,38]],["레위기","Leviticus",[17,16,17,35,19,30,38,36,24,20,47,8,59,57,33,34,16,30,37,27,24,33,44,23,55,46,34]],["민수기","Numbers",[54,34,51,49,31,27,89,26,23,36,35,16,33,45,41,50,13,32,22,29,35,41,30,25,18,65,23,31,40,16,54,42,56,29,34,13]],["신명기","Deuteronomy",[46,37,29,49,33,25,26,20,29,22,32,32,18,29,23,22,20,22,21,20,23,30,25,22,19,19,26,68,29,20,30,52,29,12]],["여호수아","Joshua",[18,24,17,24,15,27,26,35,27,43,23,24,33,15,63,10,18,28,51,9,45,34,16,33]],["사사기","Judges",[36,23,31,24,31,40,25,35,57,18,40,15,25,20,20,31,13,31,30,48,25]],["룻기","Ruth",[22,23,18,22]],["사무엘상","1Samuel",[28,36,21,22,12,21,17,22,27,27,15,25,23,52,35,23,58,30,24,42,15,23,29,22,44,25,12,25,11,30,13]],["사무엘하","2Samuel",[27,32,39,12,25,23,29,18,13,19,27,31,39,33,37,23,29,33,43,26,22,51,39,25]],["열왕기상","1Kings",[53,46,28,34,18,38,51,66,28,29,43,33,34,31,34,34,24,46,21,43,29,53]],["열왕기하","2Kings",[18,25,27,44,27,33,20,29,37,36,21,21,25,29,38,20,41,37,37,21,26,20,37,20,30]],["역대상","1Chronicles",[54,55,24,43,26,81,40,40,44,14,47,40,14,17,29,43,27,17,19,8,30,19,32,31,31,32,34,21,30]],["역대하","2Chronicles",[17,18,17,22,14,42,22,18,31,19,23,16,22,15,19,14,19,34,11,37,20,12,21,27,28,23,9,27,36,27,21,33,25,33,27,23]],["에스라","Ezra",[11,70,13,24,17,22,28,36,15,44]],["느헤미야","Nehemiah",[11,20,32,23,19,19,73,18,38,39,36,47,31]],["에스더","Esther",[22,23,15,17,14,14,10,17,32,3]],["욥기","Job",[22,13,26,21,27,30,21,22,35,22,20,25,28,22,35,22,16,21,29,29,34,30,17,25,6,14,23,28,25,31,40,22,33,37,16,33,24,41,30,24,34,17]],["시편","Psalms",[6,12,8,8,12,10,17,9,20,18,7,8,6,7,5,11,15,50,14,9,13,31,6,10,22,12,14,9,11,12,24,11,22,22,28,12,40,22,13,17,13,11,5,26,17,11,9,14,20,23,19,9,6,7,23,13,11,11,17,12,8,12,11,10,13,20,7,35,36,5,24,20,28,23,10,12,20,72,13,19,16,8,18,12,13,17,7,18,52,17,16,15,5,23,11,13,12,9,9,5,8,28,22,35,45,48,43,13,31,7,10,10,9,8,18,19,2,29,176,7,8,9,4,8,5,6,5,6,8,8,3,18,3,3,21,26,9,8,24,13,10,7,12,15,21,10,20,14,9,6]],["잠언","Proverbs",[33,22,35,27,23,35,27,36,18,32,31,28,25,35,33,33,28,24,29,30,31,29,35,34,28,28,27,28,27,33,31]],["전도서","Ecclesiastes",[18,26,22,16,20,12,29,17,18,20,10,14]],["아가","SongofSolomon",[17,17,11,16,16,14,13,14]],["이사야","Isaiah",[31,22,26,6,30,13,25,22,21,34,16,6,22,32,9,14,14,7,25,6,17,25,18,23,12,21,13,29,24,33,9,20,24,17,10,22,38,22,8,31,29,25,28,28,25,13,15,22,26,11,23,15,12,17,13,12,21,14,21,22,11,12,19,12,25,24]],["예레미야","Jeremiah",[19,37,25,31,31,30,34,22,26,25,23,17,27,22,21,21,27,23,15,18,14,30,40,10,38,24,22,17,32,24,40,44,26,22,19,32,21,28,18,16,18,22,13,30,5,28,7,47,39,46,64,34]],["예레미야애가","Lamentations",[22,22,66,22,22]],["에스겔","Ezekiel",[28,10,27,17,17,14,27,18,11,22,25,28,23,23,8,63,24,32,14,49,32,31,49,27,17,21,36,26,21,26,18,32,33,31,15,38,28,23,29,49,26,20,27,31,25,24,23,35]],["다니엘","Daniel",[21,49,30,37,31,28,28,27,27,21,45,13]],["호세아","Hosea",[11,23,5,19,15,11,16,14,17,15,12,14,16,9]],["요엘","Joel",[20,32,21]],["아모스","Amos",[15,16,15,13,27,14,17,14,15]],["오바댜","Obadiah",[21]],["요나","Jonah",[17,10,10,11]],["미가","Micah",[16,13,12,13,15,16,20]],["나훔","Nahum",[15,13,19]],["하박국","Habakkuk",[17,20,19]],["스바냐","Zephaniah",[18,15,20]],["학개","Haggai",[15,23]],["스가랴","Zechariah",[21,13,10,14,11,15,14,23,17,12,17,14,9,21]],["말라기","Malachi",[14,17,18,6]],["마태복음","Matthew",[25,23,17,25,48,34,29,34,38,42,30,50,58,36,39,28,27,35,30,34,46,46,39,51,46,75,66,20]],["마가복음","Mark",[45,28,35,41,43,56,37,38,50,52,33,44,37,72,47,20]],["누가복음","Luke",[80,52,38,44,39,49,50,56,62,42,54,59,35,35,32,31,37,43,48,47,38,71,56,53]],["요한복음","John",[51,25,36,54,47,71,53,59,41,42,57,50,38,31,27,33,26,40,42,31,25]],["사도행전","Acts",[26,47,26,37,42,15,60,40,43,48,30,25,52,28,41,40,34,28,41,38,40,30,35,27,27,32,44,31]],["로마서","Romans",[32,29,31,25,21,23,25,39,33,21,36,21,14,23,33,27]],["고린도전서","1Corinthians",[31,16,23,21,13,20,40,13,27,33,34,31,13,40,58,24]],["고린도후서","2Corinthians",[24,17,18,18,21,18,16,24,15,18,33,21,13]],["갈라디아서","Galatians",[24,21,29,31,26,18]],["에베소서","Ephesians",[23,22,21,32,33,24]],["빌립보서","Philippians",[30,30,21,23]],["골로새서","Colossians",[29,23,25,18]],["데살로니가전서","1Thessalonians",[10,20,13,18,28]],["데살로니가후서","2Thessalonians",[12,17,18]],["디모데전서","1Timothy",[20,15,16,16,25,21]],["디모데후서","2Timothy",[18,26,17,22]],["디도서","Titus",[16,15,15]],["빌레몬서","Philemon",[25]],["히브리서","Hebrews",[14,18,19,16,14,20,28,13,28,39,40,29,25]],["야고보서","James",[27,26,18,17,20]],["베드로전서","1Peter",[25,25,22,19,14]],["베드로후서","2Peter",[21,22,18]],["요한일서","1John",[10,29,24,21,21]],["요한이서","2John",[13]],["요한삼서","3John",[15]],["유다서","Jude",[25]],["요한계시록","Revelation",[20,29,22,11,14,17,17,13,21,11,19,17,18,20,8,21,18,24,21,15,27,21]]];
+const BIBLE_TOTAL = BIBLE_INDEX.reduce((n, b) => n + b[2].reduce((m, c) => m + c, 0), 0);
+
+/* Verse number (0-based, canonical order) → which book/chapter/verse it is. No text needed. */
+function verseLocation(n){
+  let left = ((n % BIBLE_TOTAL) + BIBLE_TOTAL) % BIBLE_TOTAL;
+  for (const [ko, key, counts] of BIBLE_INDEX) {
+    for (let c = 0; c < counts.length; c++) {
+      if (left < counts[c]) return { book: ko, key, chapter: c + 1, verse: left + 1, counts, ref: `${ko} ${c + 1}:${left + 1}` };
+      left -= counts[c];
+    }
+  }
+  return null;
+}
+/* Today in Korea (KST, UTC+9): the day runs 00:00–24:00 Korean time on every device. */
+function kstDayStr(d = new Date()){
+  const k = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
+  return `${k.getFullYear()}-${pad(k.getMonth() + 1)}-${pad(k.getDate())}`;
+}
+/* Avalanche hash so consecutive days land far apart in the Bible. */
+function hashStr(str){
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  h ^= h >>> 16; h = Math.imul(h, 2246822507) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 3266489909) >>> 0;
+  return (h ^= h >>> 16) >>> 0;
+}
+
+/* Downloaded books, kept in this browser so each is fetched only once. */
+const bookMem = new Map();
+const bookStore = {
+  db: null, broken: false,
+  open(){
+    if (this.db) return Promise.resolve(this.db);
+    if (this.broken) return Promise.resolve(null);
+    return new Promise(res => {
+      try {
+        const rq = indexedDB.open('prayer-bible', 1);
+        rq.onupgradeneeded = () => rq.result.createObjectStore('books', { keyPath:'key' });
+        rq.onsuccess = () => { this.db = rq.result; res(this.db); };
+        rq.onerror = rq.onblocked = () => { this.broken = true; res(null); };
+      } catch (e) { this.broken = true; res(null); }
+    });
+  },
+  async get(key){
+    const db = await this.open();
+    if (!db) return null;
+    return new Promise(res => {
+      try {
+        const rq = db.transaction('books').objectStore('books').get(key);
+        rq.onsuccess = () => res(rq.result ? rq.result.verses : null);
+        rq.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+  },
+  async put(key, verses){
+    const db = await this.open();
+    if (!db) return;
+    await new Promise(res => {
+      try {
+        const tx = db.transaction('books', 'readwrite');
+        tx.objectStore('books').put({ key, verses, at: Date.now() });
+        tx.oncomplete = tx.onerror = tx.onabort = () => res();
+      } catch (e) { res(); }
+    });
+  },
+  async clear(){
+    bookMem.clear();
+    const db = await this.open();
+    if (!db) return;
+    await new Promise(res => {
+      try {
+        const tx = db.transaction('books', 'readwrite');
+        tx.objectStore('books').clear();
+        tx.oncomplete = tx.onerror = tx.onabort = () => res();
+      } catch (e) { res(); }
+    });
+  }
+};
+
+async function fetchText(url){
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const t = ctl ? setTimeout(() => ctl.abort(), 15000) : null;
+  try {
+    // 'default', not 'force-cache': a cached 404 from a misconfigured moment must not
+    // stick around and make the retry button useless. Books are cached in IndexedDB anyway.
+    const res = await fetch(url, { cache:'default', signal: ctl ? ctl.signal : undefined });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.text();
+  } finally { if (t) clearTimeout(t); }
+}
+/* Both shapes are accepted: one verse per line (.txt), or the upstream book JSON. */
+function parseBook(body, ext){
+  if (ext === 'json') {
+    const data = JSON.parse(body);
+    const chapters = (data && data.chapters) || [];
+    const out = [];
+    chapters.slice().sort((a, b) => a.chapter - b.chapter).forEach(c => {
+      c.verses.slice().sort((a, b) => a.verse - b.verse).forEach(v => out.push(String(v.text).split(/\s+/).join(' ').trim()));
+    });
+    return out;
+  }
+  return body.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
+}
+/* Fetched data must match the table of contents, or the source is rejected. */
+function bookValid(verses, counts){
+  const want = counts.reduce((a, b) => a + b, 0);
+  return Array.isArray(verses) && verses.length === want && verses.every(v => typeof v === 'string' && v.length > 0);
+}
+async function loadBook(loc){
+  if (bookMem.has(loc.key)) return bookMem.get(loc.key);
+  const cached = await bookStore.get(loc.key);
+  if (cached && bookValid(cached, loc.counts)) { bookMem.set(loc.key, cached); return cached; }
+
+  const saved = store.get(KEY_BIBLE_SRC, null);
+  const order = BIBLE_SOURCES.slice().sort((a, b) => (b.base === saved ? 1 : 0) - (a.base === saved ? 1 : 0));
+  let lastErr = null;
+  for (const src of order) {
+    try {
+      const verses = parseBook(await fetchText(src.base + loc.key + '.' + src.ext), src.ext);
+      if (!bookValid(verses, loc.counts)) { lastErr = new Error('본문 형식이 표준과 다릅니다'); continue; }
+      bookMem.set(loc.key, verses);
+      store.set(KEY_BIBLE_SRC, src.base);
+      bookStore.put(loc.key, verses);
+      return verses;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('말씀 파일을 불러오지 못했습니다');
+}
+
+/* Verse of the day: state for the hero card. */
+const verseState = { phase:'idle', day:'', loc:null, text:'', error:'' };
+function verseIndexFor(day){ return hashStr('prayer-verse-' + day) % BIBLE_TOTAL; }
+function dailyVerse(){
+  return verseState.phase === 'ready'
+    ? { ref: verseState.loc.ref, text: verseState.text, book: verseState.loc.book, chapter: verseState.loc.chapter, verse: verseState.loc.verse }
+    : null;
+}
+let verseRun = 0;
+async function loadDailyVerse({ force = false } = {}){
+  const day = kstDayStr();
+  if (!force && verseState.day === day && (verseState.phase === 'ready' || verseState.phase === 'loading')) return;
+  const run = ++verseRun;
+  verseState.day = day;
+  verseState.loc = verseLocation(verseIndexFor(day));
+  verseState.phase = 'loading';
+  verseState.error = '';
+  renderHeroIfHome();
+  try {
+    const verses = await loadBook(verseState.loc);
+    if (run !== verseRun) return;
+    let n = verseState.loc.verse - 1;
+    for (let c = 0; c < verseState.loc.chapter - 1; c++) n += verseState.loc.counts[c];
+    verseState.text = verses[n];
+    verseState.phase = 'ready';
+  } catch (e) {
+    if (run !== verseRun) return;
+    verseState.phase = 'error';
+    verseState.error = (typeof navigator !== 'undefined' && navigator.onLine === false)
+      ? '오프라인 상태라 오늘의 말씀을 불러오지 못했습니다. 연결되면 다시 시도하세요.'
+      : '말씀 파일을 불러오지 못했습니다. 인터넷 연결을 확인하거나 잠시 후 다시 시도하세요.';
+  }
+  renderHeroIfHome();
+  renderVerseInfo();
+}
+function renderHeroIfHome(){ if (state.route && state.route.name === 'home') renderHero(); }
+/* Re-render when the Korean day rolls over while the app stays open. */
+function watchDayChange(){
+  let day = kstDayStr();
+  setInterval(() => {
+    const now = kstDayStr();
+    if (now !== day) { day = now; loadDailyVerse(); }
+  }, 60000);
+}
+
+/* ------------------------------------------------------------
    Home rendering
    ------------------------------------------------------------ */
 function renderHome(){
@@ -1232,83 +1476,34 @@ function renderHero(){
     el.addEventListener('animationend', () => el.classList.remove('intro'), { once:true });
     state.heroIntroDone = true;
   }
-  if (cloud.phase !== 'ready') {
-    el.classList.add('hero-empty');
-    if (cloud.phase === 'locked') {
-      const keep = $('#lockCode') ? $('#lockCode').value : '';
-      el.innerHTML = `
-        <div class="hero-top"><span class="pill">동기화 코드 필요</span>${CROSS_MARK}</div>
-        <div class="hero-main">
-          <h2 class="hero-title">이 기기를<br>연결해 주세요</h2>
-          <p class="hero-excerpt">동기화 코드를 한 번 입력하면 다른 기기와 같은 기도문이 보이고, 다음부터는 입력 없이 바로 열립니다.</p>
-          <div class="inline-row" style="margin-top:22px">
-            <input class="sr-only" type="text" autocomplete="username" value="${esc(SYNC_ACCOUNT_EMAIL)}" tabindex="-1" aria-hidden="true" readonly>
-            <input class="input" id="lockCode" type="password" autocomplete="current-password" placeholder="동기화 코드" aria-label="동기화 코드" enterkeyhint="go">
-            <button class="btn btn-primary" type="button" id="lockBtn" data-action="unlock">연결</button>
-          </div>
-          <p class="cat-msg err" id="lockMsg" aria-live="polite"></p>
-        </div>
-        <div class="hero-bottom"><span>${esc(fmtDot(todayStr()))}</span><span></span><span>Supabase</span></div>`;
-      $('#lockCode').value = keep;
-      return;
-    }
-    if (cloud.phase === 'error' || cloud.phase === 'config') {
-      const cfg = cloud.phase === 'config';
-      el.innerHTML = `
-        <div class="hero-top"><span class="pill">${cfg ? '연결 설정 필요' : '연결 오류'}</span>${CROSS_MARK}</div>
-        <div class="hero-main">
-          <h2 class="hero-title">${cfg ? 'Supabase 연결 정보를<br>입력해 주세요' : '기도문을<br>불러오지 못했습니다'}</h2>
-          <p class="hero-excerpt">${esc(cloud.error)}</p>
-          <button class="btn btn-primary" type="button" data-action="retry">다시 시도</button>
-        </div>
-        <div class="hero-bottom"><span>${esc(fmtDot(todayStr()))}</span><span></span><span>Supabase</span></div>`;
-    } else {
-      el.innerHTML = `
-        <div class="hero-top"><span class="pill">불러오는 중</span>${CROSS_MARK}</div>
-        <div class="hero-main" aria-hidden="true">
-          <div class="skel title"></div><div class="skel" style="width:92%"></div><div class="skel" style="width:84%"></div><div class="skel" style="width:60%"></div>
-        </div>
-        <div class="hero-bottom"><span>${esc(fmtDot(todayStr()))}</span><span></span><span>Supabase</span></div>`;
-    }
-    return;
+  el.classList.add('hero-empty');
+  const loc = verseState.loc;
+  let body;
+  if (verseState.phase === 'ready') {
+    body = `<p class="verse-body">${esc(verseState.text)}</p><div class="verse-ref">${esc(loc.ref)}</div>`;
+  } else if (verseState.phase === 'error') {
+    body = `<p class="hero-excerpt">${esc(verseState.error)}</p>
+      <button class="btn" type="button" data-action="verse-retry" style="margin-top:20px">다시 시도</button>
+      ${loc ? `<div class="verse-ref">${esc(loc.ref)}</div>` : ''}`;
+  } else {
+    body = `<div aria-hidden="true"><div class="skel" style="width:94%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div></div>
+      ${loc ? `<div class="verse-ref">${esc(loc.ref)}</div>` : ''}`;
   }
-  if (!items.length) {
-    el.classList.add('hero-empty');
-    el.innerHTML = `
-      <div class="hero-top"><span class="pill">오늘의 기도</span>${CROSS_MARK}</div>
-      <div class="hero-main">
-        <h2 class="hero-title">첫 기도문을<br>적어 보세요</h2>
-        <p class="hero-excerpt">감사와 고백, 마음에 품은 이름들을 기록해 두면 이곳에서 오늘의 기도로 다시 만날 수 있습니다.</p>
-        <button class="btn btn-primary" type="button" data-action="new">${icon('plus', 18)}새 기도문 쓰기</button>
-      </div>
-      <div class="hero-bottom"><span>${esc(fmtDot(todayStr()))}</span><span></span><span>기도문 0개</span></div>`;
-    return;
-  }
-  el.classList.remove('hero-empty');
-  const t = todayStr();
-  const todays = sorted(items.filter(p => p.date === t), 'new');
-  const pick = todays[0] || sorted(items, 'new')[0];
-  const label = todays.length ? '오늘의 기도' : '최근 기도';
-  const href = '#/p/' + encodeURIComponent(pick.id);
-  const note = pick.memo || (pick.tags.length ? pick.tags.map(x => '#' + x).join(' ') : '');
+  const canWrite = verseState.phase === 'ready';
   el.innerHTML = `
-    <div class="hero-top"><span class="pill">${label}</span>${CROSS_MARK}</div>
-    <div class="hero-main">
-      <h2 class="hero-title"><a href="${href}" data-nav>${esc(pick.title)}</a></h2>
-      <p class="hero-excerpt">${esc(pick.content.replace(/\n\s*\n+/g, '\n').trim())}</p>
-      ${note ? `<div class="hero-note">${icon('arrow', 22)}<span>${esc(note)}</span></div>` : ''}
-    </div>
+    <div class="hero-top"><span class="pill">오늘의 말씀</span>${CROSS_MARK}</div>
+    <div class="hero-main">${body}</div>
     <div class="hero-bottom">
-      <span>${esc(fmtDot(pick.date))}</span>
-      <a class="circle-btn" href="${href}" data-nav aria-label="${esc(pick.title)} 읽기">${icon('chevR', 18)}</a>
-      <span>${esc(pick.category)}</span>
+      <span>${esc(fmtDot(todayStr()))}</span>
+      ${canWrite ? `<button class="circle-btn" type="button" data-action="new" aria-label="이 말씀으로 기도문 쓰기">${icon('plus', 18)}</button>` : '<span></span>'}
+      <span class="verse-src">개역한글판<br>대한성서공회</span>
     </div>`;
 }
 
 function renderChips(){
   const counts = { all: items.length, fav: items.filter(p => p.favorite).length };
   cats().forEach(c => { counts[c] = items.filter(p => p.category === c).length; });
-  const defs = [['all', '전체'], ['fav', '즐겨찾기'], ...cats().map(c => [c, c])];
+  const defs = [['all', '전체'], ['fav', '중요'], ...cats().map(c => [c, c])];
   $('#chips').innerHTML = defs.map(([k, l]) => `
     <button type="button" class="chip${counts[k] ? '' : ' is-zero'}" data-cat="${esc(k)}" aria-pressed="${state.cat === k}">
       ${k === 'fav' ? icon('star', 14) : ''}<span>${esc(l)}</span><span class="n">${counts[k]}</span>
@@ -1368,9 +1563,9 @@ function renderList(){
   }
   if (!list.length) {
     const what = toks.length ? `‘${esc(state.q.trim())}’에 맞는 기도문이 없습니다` :
-      (state.cat === 'fav' ? '즐겨찾기한 기도문이 없습니다' : `‘${esc(state.cat)}’ 카테고리에 기도문이 없습니다`);
+      (state.cat === 'fav' ? '중요 표시한 기도문이 없습니다' : `‘${esc(state.cat)}’ 카테고리에 기도문이 없습니다`);
     const hint = state.cat === 'fav' && !toks.length
-      ? '기도문 카드의 별을 누르면 이곳에 모아 볼 수 있습니다.'
+      ? '기도문 카드의 별을 누르면 중요 기도문으로 모아 볼 수 있습니다.'
       : '다른 검색어를 입력하거나 필터를 해제해 보세요.';
     meta.textContent = '검색 결과 0개';
     listEl.innerHTML = `
@@ -1389,7 +1584,7 @@ function renderList(){
       <article class="card">
         <div class="card-top">
           <span class="pill pill-sm">${esc(p.category)}</span>
-          <button type="button" class="star" data-fav="${esc(p.id)}" aria-pressed="${p.favorite}" aria-label="${p.favorite ? '즐겨찾기 해제' : '즐겨찾기에 추가'}">${icon('star', 20)}</button>
+          <button type="button" class="star" data-fav="${esc(p.id)}" aria-pressed="${p.favorite}" aria-label="${p.favorite ? '중요 해제' : '중요로 표시'}">${icon('star', 20)}</button>
         </div>
         <h3 class="card-title"><a class="card-link" href="${href}" data-nav>${highlight(p.title, toks)}</a></h3>
         <p class="card-excerpt">${highlight(snippet(p.content, toks), toks)}</p>
@@ -1433,8 +1628,8 @@ function renderRead(id){
 
   const fav = $('#rdFav');
   fav.setAttribute('aria-pressed', String(p.favorite));
-  fav.setAttribute('aria-label', p.favorite ? '즐겨찾기 해제' : '즐겨찾기에 추가');
-  fav.title = p.favorite ? '즐겨찾기 해제' : '즐겨찾기에 추가';
+  fav.setAttribute('aria-label', p.favorite ? '중요 해제' : '중요로 표시');
+  fav.title = p.favorite ? '중요 해제' : '중요로 표시';
 
   const ctx = readContext(id);
   const idx = ctx.findIndex(x => x.id === id);
@@ -1512,9 +1707,17 @@ function openEditor(id){
   $('#edDelete').hidden = !p;
   clearErrors();
 
+  const seed = (!p && state.verseSeed) ? state.verseSeed : null;
+  state.verseSeed = null;
   const base = p
     ? { title:p.title, category:p.category, content:p.content, date:p.date, tags:p.tags.slice(), memo:p.memo }
-    : { title:'', category: cats().includes(state.cat) ? state.cat : (cats().includes('개인기도') ? '개인기도' : cats()[0]), content:'', date: todayStr(), tags:[], memo:'' };
+    : { title: seed ? seed.ref : '',
+        category: cats().includes(state.cat) ? state.cat : (cats().includes('묵상') ? '묵상' : cats()[0]),
+        content: seed ? `${seed.text}
+(${seed.ref})
+
+` : '',
+        date: todayStr(), tags:[], memo:'' };
   state.editBase = normForm(base);
 
   let data = base, restored = false;
@@ -1670,7 +1873,7 @@ async function toggleFav(id){
   redraw();
   try {
     await cloudOp(() => api.setFavorite(id, next));                  // UPDATE is_favorite
-    toast(next ? '즐겨찾기에 추가했습니다' : '즐겨찾기에서 뺐습니다', 'star');
+    toast(next ? '중요 기도문으로 표시했습니다' : '중요 표시를 해제했습니다', 'star');
   } catch (e) {
     const cur = findItem(id);
     if (cur) cur.favorite = !next;  // roll back
@@ -2146,6 +2349,26 @@ function legacyLocalData(){
   return { items: list, categories: cats0 };
 }
 
+/* If the account still has exactly the old starter categories, swap in the new list.
+   Renames keep each prayer's meaning; untouched custom lists are left alone. */
+async function migrateDefaultCategories(rows){
+  const names = rows.map(r => r.name);
+  const same = names.length === OLD_DEFAULT_CATS.length && OLD_DEFAULT_CATS.every(c => names.includes(c));
+  if (!same) return null;
+  for (const [from, to] of Object.entries(CAT_RENAMES)) {
+    if (names.includes(from) && !names.includes(to)) await api.renameCategory(from, to);
+  }
+  const after = (await api.fetchCategories()).map(r => r.name);
+  const missing = DEFAULT_CATS.filter(c => !after.includes(c));
+  if (missing.length) await api.insertCategories(missing, after.length);
+  const fresh = await api.fetchCategories();
+  const order = new Map(DEFAULT_CATS.map((c, i) => [c, i]));
+  const want = fresh.slice().sort((a, b) => (order.has(a.name) ? order.get(a.name) : 999) - (order.has(b.name) ? order.get(b.name) : 999));
+  const changes = want.map((r, i) => ({ id: r.id, sort_order: i })).filter((c, i) => want[i].sort_order !== i);
+  if (changes.length) await api.setCategoryOrders(changes);
+  return await api.fetchCategories();   // caller must re-read prayers: their categories changed too
+}
+
 async function loadCloudData(){
   let [prayers, rows] = await Promise.all([api.fetchAllPrayers(), api.fetchCategories()]);
   if (!rows.length) {
@@ -2164,6 +2387,8 @@ async function loadCloudData(){
       if (legacy.items.length) setTimeout(() => toast(`이 브라우저에 있던 기도문 ${legacy.items.length}개를 Supabase로 옮겼습니다`, 'check'), 400);
     }
   } else {
+    const migrated = await migrateDefaultCategories(rows);
+    if (migrated) { rows = migrated; prayers = await api.fetchAllPrayers(); }
     const known = new Set(rows.map(r => r.name));
     const missing = [...new Set(prayers.map(p => p.category))].filter(c => !known.has(c));
     if (missing.length) {
@@ -2432,6 +2657,19 @@ function setSync(){
   pill.setAttribute('aria-label', 'Supabase 동기화 상태: ' + text);
   renderConnInfo();
 }
+function renderVerseInfo(){
+  const el = $('#verseStatus');
+  if (!el) return;
+  const saved = store.get(KEY_BIBLE_SRC, null);
+  const where = saved === 'bible/' ? '이 사이트의 bible 폴더' : (saved ? 'jsDelivr CDN' : '아직 받지 않음');
+  const cached = bookMem.size;
+  el.classList.toggle('warn', verseState.phase === 'error');
+  el.textContent = verseState.phase === 'error'
+    ? verseState.error
+    : verseState.phase === 'loading'
+      ? '오늘의 말씀을 불러오는 중입니다…'
+      : `${verseState.loc ? verseState.loc.ref + ' · ' : ''}받아 오는 곳: ${where}${cached ? ` · 이번 접속에서 ${cached}권 사용 중` : ''}`;
+}
 function renderConnInfo(){
   const s = $('#connState');
   if (!s) return;
@@ -2532,6 +2770,7 @@ function openSettings(){
   catMsg('');
   renderCatManager();
   renderConnInfo();
+  renderVerseInfo();
   const dlg = $('#settingsDlg');
   if (hasDialog) dlg.showModal(); else dlg.setAttribute('open', '');
   const panel = dlg.querySelector('.modal-panel');
@@ -3284,9 +3523,10 @@ function bindEvents(){
     const act = e.target.closest('[data-action]');
     if (act) {
       const a = act.dataset.action;
-      if (a === 'new') go('#/new');
+      if (a === 'new') { if (act.dataset.action === 'new' && act.classList.contains('circle-btn')) state.verseSeed = dailyVerse(); go('#/new'); }
       else if (a === 'settings') openSettings();
       else if (a === 'retry') initCloud();
+      else if (a === 'verse-retry') loadDailyVerse({ force:true });
       else if (a === 'unlock') joinSync($('#lockCode'), $('#lockMsg'), act);
       else if (a === 'back') goBack('#/');
       else if (a === 'clear-search') { state.q = ''; $('#q').value = ''; renderList(); $('#q').focus(); }
@@ -3513,7 +3753,7 @@ function bindEvents(){
   });
   window.addEventListener('pagehide', writeDraft);
   // Connection awareness: refresh after coming back online or returning to the tab.
-  window.addEventListener('online', () => { setSync(); if (cloud.phase === 'error') initCloud(); else softReload(); });
+  window.addEventListener('online', () => { setSync(); if (verseState.phase === 'error') loadDailyVerse({ force:true }); if (cloud.phase === 'error') initCloud(); else softReload(); });
   window.addEventListener('offline', setSync);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && cloud.phase === 'ready' && Date.now() - cloud.lastLoad > 60000) softReload();
@@ -3533,6 +3773,19 @@ function bindEvents(){
       e.preventDefault(); joinSync($('#lockCode'), $('#lockMsg'), $('#lockBtn'));
     }
   });
+  $('#verseReload').addEventListener('click', async e => {
+    setBusy(e.currentTarget, true, '불러오는 중…');
+    await loadDailyVerse({ force:true });
+    setBusy(e.currentTarget, false);
+    toast(verseState.phase === 'ready' ? '오늘의 말씀을 불러왔습니다' : verseState.error, verseState.phase === 'ready' ? 'check' : 'info');
+  });
+  $('#verseClear').addEventListener('click', async () => {
+    await bookStore.clear();
+    store.set(KEY_BIBLE_SRC, null);
+    await loadDailyVerse({ force:true });
+    renderVerseInfo();
+    toast('받아 둔 말씀을 지우고 다시 불러왔습니다', 'check');
+  });
   $('#btnReload').addEventListener('click', () => {
     if (cloud.phase === 'ready') softReload({ notify:true }); else initCloud();
   });
@@ -3547,7 +3800,9 @@ function boot(){
   drawBackground(true);
   applyBgVars();
   bindEvents();
-  route();                 // shows the loading state immediately
+  route();                 // paints the app shell immediately
+  loadDailyVerse();        // then fetches just today's book
+  watchDayChange();
   refreshBackground();
   initCloud();             // connects, loads data, then routes to the real view
 }
