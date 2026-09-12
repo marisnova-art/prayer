@@ -1302,7 +1302,7 @@ function verseLocation(n){
 /* Today in Korea (KST, UTC+9): the day runs 00:00–24:00 Korean time on every device. */
 function kstDayStr(d = new Date()){
   const k = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
-  return `${k.getFullYear()}-${pad(k.getMonth() + 1)}-${pad(k.getDate())}`;
+      return `${k.getFullYear()}-${pad(k.getMonth() + 1)}-${pad(k.getDate())}T${pad(k.getHours())}`;
 }
 /* Avalanche hash so consecutive days land far apart in the Bible. */
 function hashStr(str){
