@@ -47,6 +47,7 @@
   /* accents (taken from the tulip blooms in the reference) */
   --amber: #f5a25d;
   --amber-soft: rgba(245,162,93,.28);
+  --gold: #ffe2b0;
   --danger: #ff9a8a;
 
   /* radius hierarchy */
@@ -56,13 +57,21 @@
   --r-sm: 13px;
   --r-pill: 999px;
 
-  /* type */
+  /* type — --font-read / --read-size / --read-lh are set from 설정 */
   --font-ui: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
-  --font-read: "Gowun Batang", "Nanum Myeongjo", "AppleMyungjo", "Batang", serif;
+  --font-serif: "Gowun Batang", "Nanum Myeongjo", "AppleMyungjo", "Batang", serif;
+  --font-read: var(--font-serif);
   --read-size: 1.2rem;
+  --read-lh: 1.8;
+
+  /* opaque panels (no backdrop-filter — cheap to scroll on phones) */
+  --panel: linear-gradient(160deg, rgba(40,58,49,.72), rgba(20,32,26,.78));
+  --panel-hover: linear-gradient(160deg, rgba(52,72,62,.78), rgba(24,38,31,.82));
+  --bar-bg: rgba(10,18,14,.9);
 
   --ease: cubic-bezier(.2,.7,.2,1);
 }
+html[data-font="sans"]{--font-read: var(--font-ui)}
 
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:auto}
@@ -140,7 +149,7 @@ body.has-photo .bg-veil{
 }
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   .glass{background:rgba(24,38,31,.88)}
-  .glass-soft,.card,.nav-btn{background:rgba(24,38,31,.82)}
+  .glass-soft,.nav-btn{background:rgba(24,38,31,.82)}
 }
 
 /* ============================================================
@@ -160,6 +169,7 @@ body.has-photo .bg-veil{
 @media (hover:hover){.btn-danger:hover{background:rgba(255,154,138,.12);border-color:rgba(255,154,138,.6)}}
 .btn-quiet{border-color:transparent;background:transparent;color:var(--text-2)}
 @media (hover:hover){.btn-quiet:hover{background:rgba(255,255,255,.08);border-color:transparent}}
+.btn-sm{min-height:40px;padding:0 16px;font-size:.88rem}
 .icon-btn{
   width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
   border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.06);
@@ -169,6 +179,8 @@ body.has-photo .bg-veil{
 @media (hover:hover){.icon-btn.is-danger:hover{color:var(--danger);border-color:rgba(255,154,138,.5)}}
 .icon-btn[aria-pressed="true"]{color:var(--amber);border-color:rgba(245,162,93,.5)}
 .icon-btn[aria-pressed="true"] svg{fill:currentColor}
+.icon-btn.plain[aria-pressed="true"]{color:#fff;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.34)}
+.icon-btn.plain[aria-pressed="true"] svg{fill:none}
 
 .pill{
   display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;
@@ -177,20 +189,36 @@ body.has-photo .bg-veil{
 }
 .pill-sm{height:26px;padding:0 11px;font-size:.74rem;border-color:rgba(255,255,255,.38);color:var(--text-2)}
 
+/* toggle switch */
+.switch{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;padding:4px 0}
+.switch-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.switch-text b{font-weight:500;font-size:.94rem;color:#fff}
+.switch-text small{font-size:.8rem;color:var(--text-3);line-height:1.5}
+.switch input{position:absolute;opacity:0;pointer-events:none}
+.switch-track{
+  position:relative;flex-shrink:0;width:52px;height:30px;border-radius:30px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.2);transition:background .2s;
+}
+.switch-track::after{
+  content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .22s var(--ease);
+}
+.switch input:checked + .switch-track{background:rgba(245,162,93,.85);border-color:transparent}
+.switch input:checked + .switch-track::after{transform:translateX(22px)}
+.switch input:focus-visible + .switch-track{outline:2px solid #fff;outline-offset:3px}
+
 /* ============================================================
    App shell
    ============================================================ */
 .app{
-  max-width:1320px;margin:0 auto;
-  padding:max(18px, env(safe-area-inset-top)) clamp(16px,4vw,44px) calc(48px + env(safe-area-inset-bottom));
+  max-width:1680px;margin:0 auto;
+  padding:max(18px, env(safe-area-inset-top)) clamp(16px,3.2vw,48px) calc(48px + env(safe-area-inset-bottom));
 }
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 26px}
-.brand{display:flex;align-items:baseline;gap:12px;color:inherit;text-decoration:none;min-width:0}
-.brand{gap:10px}
+.brand{display:flex;align-items:baseline;gap:10px;color:inherit;text-decoration:none;min-width:0}
 .brand-mark{
   width:clamp(34px,3.4vw,40px);height:clamp(34px,3.4vw,40px);flex-shrink:0;align-self:center;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:12px;
-  filter:drop-shadow(0 4px 14px rgba(0,0,0,.45));
+  border-radius:12px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.45));
 }
 .brand-mark svg{width:100%;height:100%}
 .brand-en{
@@ -201,66 +229,80 @@ body.has-photo .bg-veil{
 .brand-date{font-size:.82rem;color:var(--text-4);margin-left:6px}
 .topbar-actions{display:flex;align-items:center;gap:10px}
 
-.view.enter{animation:viewIn .38s var(--ease) both}
-@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view.enter{animation:viewIn .34s var(--ease) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
 /* ============================================================
    Home
    ============================================================ */
 .home-grid{
-  display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);
-  gap:clamp(24px,3vw,40px);align-items:start;
+  display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);
+  gap:clamp(24px,2.6vw,44px);align-items:start;
 }
 .hero-col{position:sticky;top:24px;min-width:0}
 .list-col{min-width:0}
+
+/* ---- 오늘의 말씀 card ---- */
 .hero{
   display:flex;flex-direction:column;
-  padding:30px 30px 26px;
-  min-height:min(650px, calc(100vh - 150px));
+  padding:28px 30px 24px;
+  min-height:min(700px, calc(100vh - 140px));
+  overflow:hidden;
 }
 .hero.intro{animation:heroIn 1.2s var(--ease) both}
 @keyframes heroIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.hero-mark{width:30px;height:42px;color:#fff;filter:drop-shadow(0 0 10px rgba(255,255,255,.55))}
-.hero-main{margin-top:auto;padding-top:48px}
-.hero-title{
-  margin:0 0 18px;font-size:clamp(2rem,2.8vw,2.8rem);font-weight:300;
-  letter-spacing:-.03em;line-height:1.2;
+.hero-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hero-top .pill{gap:8px}
+.hero-tr{font-size:.72rem;color:var(--text-3);letter-spacing:.02em}
+.hero-tools{display:flex;gap:6px}
+.hero-tools .icon-btn{width:40px;height:40px;background:rgba(255,255,255,.04)}
+
+.hero-cross{
+  position:relative;flex:1 0 auto;display:grid;place-items:center;
+  min-height:200px;margin:6px 0 4px;pointer-events:none;
 }
-.hero-title a{color:inherit;text-decoration:none}
-@media (hover:hover){.hero-title a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:6px}}
+.hero-cross svg{width:clamp(96px,9vw,132px);height:auto;overflow:visible}
+.cross-halo{transform-origin:60px 52px;animation:halo 7s ease-in-out infinite}
+.cross-rays{transform-origin:60px 52px;animation:rays 60s linear infinite}
+.cross-core{animation:core 7s ease-in-out infinite}
+@keyframes halo{0%,100%{opacity:.78;transform:scale(.96)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes rays{to{transform:rotate(360deg)}}
+@keyframes core{0%,100%{opacity:.7}50%{opacity:1}}
+
+.hero-main{position:relative;z-index:1}
 .hero-excerpt{
-  margin:0;font-family:var(--font-read);font-size:1rem;line-height:1.95;color:var(--text-2);
-  white-space:pre-line;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;
+  margin:0;font-family:var(--font-read);font-size:1rem;line-height:1.85;color:var(--text-2);
+  white-space:pre-line;
 }
-.hero-note{display:flex;gap:12px;align-items:flex-start;margin-top:26px;font-size:.82rem;line-height:1.5;color:var(--text-2)}
-.hero-note svg{margin-top:1px}
-.hero-note span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.hero-bottom{
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
-  margin-top:auto;padding-top:40px;font-size:.82rem;color:var(--text-2);
-}
-.hero-bottom > :last-child{text-align:right}
-.circle-btn{
-  width:46px;height:46px;border-radius:50%;display:grid;place-items:center;justify-self:center;
-  border:1px solid rgba(255,255,255,.72);background:transparent;transition:background .2s;color:#fff;text-decoration:none;
-}
-@media (hover:hover){.circle-btn:hover{background:rgba(255,255,255,.14)}}
-.hero-empty .hero-excerpt{white-space:normal}
 .verse-body{
-  margin:0;font-family:var(--font-read);font-size:clamp(1.12rem,1.45vw,1.35rem);line-height:1.95;
-  color:rgba(255,255,255,.96);letter-spacing:.004em;
-  display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden;
+  margin:0;font-family:var(--font-read);font-size:clamp(1.14rem,1.35vw,1.34rem);line-height:1.78;
+  color:rgba(255,255,255,.97);letter-spacing:.002em;text-wrap:pretty;
+}
+.verse-alt{
+  margin:14px 0 0;padding-left:14px;border-left:1px solid rgba(255,255,255,.28);
+  font-family:var(--font-serif);font-size:.92rem;line-height:1.75;color:var(--text-3);
 }
 .verse-ref{
-  display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:.94rem;font-weight:500;
+  display:inline-flex;align-items:center;gap:10px;margin-top:18px;font-size:.95rem;font-weight:500;
   color:#fff;letter-spacing:.01em;
 }
 .verse-ref::before{content:"";width:22px;height:1px;background:rgba(255,255,255,.65);flex-shrink:0}
-.verse-src{font-size:.78rem;color:var(--text-4)}
-.hero-empty .btn{margin-top:26px;align-self:flex-start}
+.verse-src{font-size:.74rem;line-height:1.45;color:var(--text-4)}
+.hero-bottom{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
+  margin-top:28px;font-size:.82rem;color:var(--text-2);
+}
+.hero-bottom > :last-child{text-align:right}
+.circle-btn{
+  width:48px;height:48px;border-radius:50%;display:grid;place-items:center;justify-self:center;
+  border:1px solid rgba(255,255,255,.72);background:transparent;transition:background .2s;color:#fff;text-decoration:none;
+}
+@media (hover:hover){.circle-btn:hover{background:rgba(255,255,255,.14)}}
+.hero .skel{height:14px;margin-bottom:12px}
 
-/* toolbar */
+/* ---- toolbar ---- */
+.list-head{display:flex;flex-direction:column}
 .toolbar{display:flex;gap:10px;align-items:center}
 .search{
   flex:1;min-width:0;display:flex;align-items:center;gap:10px;height:54px;
@@ -277,19 +319,26 @@ body.has-photo .bg-veil{
   height:54px;padding:0 42px 0 18px;border-radius:var(--r-pill);-webkit-appearance:none;appearance:none;
   background:rgba(255,255,255,.07) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 17px center / 12px;
   border:1px solid var(--glass-border-soft);font-size:.92rem;color:var(--text-2);cursor:pointer;
-  -webkit-backdrop-filter:blur(var(--blur-sm));backdrop-filter:blur(var(--blur-sm));
 }
 .select option{background:#17271f;color:#fff}
+.view-toggle{
+  display:flex;gap:2px;padding:4px;height:54px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.07);border:1px solid var(--glass-border-soft);
+}
+.view-toggle button{
+  width:44px;border:0;border-radius:var(--r-pill);background:none;display:grid;place-items:center;color:var(--text-3);
+  transition:background .2s,color .2s;
+}
+.view-toggle button[aria-pressed="true"]{background:var(--light-fill);color:var(--ink)}
 
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
 .chip{
-  display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;flex-shrink:0;
-  border-radius:var(--r-pill);border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.05);
+  display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 15px;flex-shrink:0;
+  border-radius:var(--r-pill);border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.06);
   font-size:.88rem;color:var(--text-2);white-space:nowrap;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   transition:background .2s,color .2s,border-color .2s;
 }
-@media (hover:hover){.chip:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.26)}}
+@media (hover:hover){.chip:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.26)}}
 .chip .n{font-size:.74rem;color:var(--text-4);font-variant-numeric:tabular-nums}
 .chip.is-zero{opacity:.55}
 .chip[aria-pressed="true"]{background:var(--light-fill);color:var(--ink);border-color:transparent;opacity:1}
@@ -297,24 +346,27 @@ body.has-photo .bg-veil{
 .chip svg{color:var(--amber)}
 
 .list-meta{margin:14px 2px;font-size:.85rem;color:var(--text-3);min-height:1.4em}
-.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 
+/* ---- prayer card (no backdrop-filter: hundreds of them must scroll smoothly) ---- */
 .card{
-  position:relative;display:flex;flex-direction:column;gap:10px;min-height:200px;
+  position:relative;display:flex;flex-direction:column;gap:10px;min-height:196px;
   padding:20px 20px 18px;border-radius:var(--r-lg);
-  background:linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.04));
+  background:var(--panel);
   border:1px solid var(--glass-border-soft);
-  -webkit-backdrop-filter:blur(var(--blur-sm)) saturate(140%);backdrop-filter:blur(var(--blur-sm)) saturate(140%);
-  box-shadow:var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
   transition:background .2s,border-color .2s;
+  content-visibility:auto;contain-intrinsic-size:auto 200px;
 }
-@media (hover:hover){.card:hover{background:linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.06));border-color:rgba(255,255,255,.28)}}
+@media (hover:hover){.card:hover{background:var(--panel-hover);border-color:rgba(255,255,255,.28)}}
 .card:focus-within{border-color:rgba(255,255,255,.55)}
-.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0}
+.card-cats{display:flex;gap:5px;min-width:0;overflow:hidden}
+.card-cats .more{font-size:.72rem;color:var(--text-4);align-self:center;white-space:nowrap}
 .star{
   position:relative;z-index:1;width:42px;height:42px;margin:-10px -10px -10px 0;
   display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--text-4);
-  transition:color .2s, background .2s;
+  transition:color .2s, background .2s;flex-shrink:0;
 }
 @media (hover:hover){.star:hover{color:#fff;background:rgba(255,255,255,.08)}}
 .star[aria-pressed="true"]{color:var(--amber)}
@@ -323,12 +375,36 @@ body.has-photo .bg-veil{
 .card-link{color:inherit;text-decoration:none;outline:none}
 .card-link::after{content:"";position:absolute;inset:0;border-radius:inherit}
 .card-excerpt{
-  margin:0;font-family:var(--font-read);font-size:.93rem;line-height:1.78;color:var(--text-3);
+  margin:0;font-family:var(--font-read);font-size:.93rem;line-height:1.72;color:var(--text-3);
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 .card-foot{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:12px;font-size:.78rem;color:var(--text-4)}
 .card-tags{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
 mark{background:var(--amber-soft);color:#fff;border-radius:3px;padding:0 1px}
+
+/* ---- compact list view ---- */
+.list.compact{grid-template-columns:1fr;gap:0;border-radius:var(--r-lg);overflow:hidden;
+  background:var(--panel);border:1px solid var(--glass-border-soft)}
+.list.compact .card{
+  min-height:0;flex-direction:row;align-items:center;gap:14px;padding:14px 16px 14px 18px;border-radius:0;
+  background:none;border:0;border-top:1px solid rgba(255,255,255,.07);box-shadow:none;
+  contain-intrinsic-size:auto 68px;
+}
+.list.compact .card:first-child{border-top:0}
+@media (hover:hover){.list.compact .card:hover{background:rgba(255,255,255,.06)}}
+.list.compact .card-top{order:3;flex-shrink:0}
+.list.compact .card-cats{display:none}
+.list.compact .card-body{flex:1;min-width:0}
+.list.compact .card-title{font-size:1rem;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list.compact .card-excerpt{-webkit-line-clamp:1;font-size:.86rem;margin-top:2px}
+.list.compact .card-foot{order:2;margin:0;padding:0;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;max-width:34%}
+.list.compact .card-foot .cat-line{display:block}
+.card-foot .cat-line{display:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.list.compact .card-tags{display:none}
+.list.compact .star{margin:0 -8px 0 0}
+
+.list-more{display:flex;justify-content:center;padding:22px 0 6px}
+.list-more .btn{min-width:200px}
 
 .empty-state{
   grid-column:1/-1;text-align:center;padding:64px 24px 60px;
@@ -346,66 +422,128 @@ mark{background:var(--amber-soft);color:#fff;border-radius:3px;padding:0 1px}
   background:var(--light-fill);color:var(--ink);font-weight:600;font-size:.98rem;
   box-shadow:0 18px 44px -14px rgba(0,0,0,.75);
 }
+.to-top{
+  position:fixed;z-index:29;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:6px;height:40px;padding:0 16px 0 12px;border-radius:var(--r-pill);
+  border:1px solid rgba(255,255,255,.22);background:rgba(16,28,22,.92);color:var(--text-2);font-size:.82rem;
+  box-shadow:0 12px 30px -12px rgba(0,0,0,.7);
+  opacity:0;transform:translate(-50%,12px);pointer-events:none;transition:opacity .25s,transform .25s var(--ease);
+}
+.to-top.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+body:not([data-view="home"]) .to-top{display:none}
 
 /* ============================================================
    Reader
    ============================================================ */
-.narrow{max-width:800px;margin:0 auto}
+.read-progress{
+  position:fixed;left:0;top:0;z-index:60;height:2px;width:100%;pointer-events:none;
+  background:linear-gradient(90deg,var(--gold),var(--amber));transform-origin:0 50%;transform:scaleX(0);
+}
+body:not([data-view="read"]) .read-progress{display:none}
+.read-wrap{max-width:1280px;margin:0 auto}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
 .bar-actions{display:flex;gap:8px}
 .btn-back{padding:0 18px 0 12px;min-height:46px}
-.read-card{padding:clamp(28px,5vw,60px) clamp(22px,6vw,68px)}
-.read-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:.88rem;color:var(--text-3)}
-.read-title{margin:22px 0 0;font-size:clamp(1.8rem,3.6vw,2.6rem);font-weight:300;line-height:1.26;letter-spacing:-.03em}
-.read-rule{height:1px;border:0;margin:28px 0 32px;background:linear-gradient(90deg, rgba(255,255,255,.38), rgba(255,255,255,0))}
+.read-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.read-card{padding:clamp(28px,4.6vw,64px) clamp(22px,5.6vw,76px)}
+.read-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.88rem;color:var(--text-3)}
+.read-meta time{margin-left:4px}
+.read-title{margin:20px 0 0;font-size:clamp(1.8rem,3.2vw,2.6rem);font-weight:300;line-height:1.26;letter-spacing:-.03em}
+.read-rule{height:1px;border:0;margin:26px 0 30px;background:linear-gradient(90deg, rgba(255,255,255,.38), rgba(255,255,255,0))}
 .read-body{
-  font-family:var(--font-read);font-size:var(--read-size);line-height:2.05;
-  color:rgba(255,255,255,.94);white-space:pre-wrap;max-width:34em;letter-spacing:.005em;
+  font-family:var(--font-read);font-size:var(--read-size);line-height:var(--read-lh);
+  color:rgba(255,255,255,.95);max-width:36em;letter-spacing:.003em;
 }
-.read-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:34px}
+.read-body p{margin:0 0 .85em;white-space:pre-wrap}
+.read-body p:last-child{margin-bottom:0}
+.read-end{margin:34px 0 0;height:1px;max-width:36em;background:linear-gradient(90deg, rgba(255,255,255,.2), rgba(255,255,255,0))}
+
+.read-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.side-card{padding:20px 20px;border-radius:var(--r-lg);background:var(--panel);border:1px solid var(--glass-border-soft)}
+.side-title{margin:0 0 12px;font-size:.78rem;font-weight:500;color:var(--text-3);letter-spacing:.02em}
+.read-tags{display:flex;flex-wrap:wrap;gap:8px}
 .tag-btn{
   height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--glass-border-soft);
   background:rgba(255,255,255,.05);font-size:.83rem;color:var(--text-2);transition:background .2s;
 }
 @media (hover:hover){.tag-btn:hover{background:rgba(255,255,255,.12);color:#fff}}
-.read-memo{margin-top:26px;padding:18px 20px;border-radius:var(--r-md);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1)}
-.memo-label{font-size:.78rem;color:var(--text-3);margin-bottom:6px}
-.read-memo p{margin:0;white-space:pre-wrap;color:var(--text-2);font-size:.95rem;line-height:1.8}
-.read-tools{
-  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem;color:var(--text-4);
-}
-.tool-group{display:flex;gap:6px;align-items:center}
+.read-memo p{margin:0;white-space:pre-wrap;color:var(--text-2);font-size:.95rem;line-height:1.75}
+.tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tool-grid .mini-btn{min-width:0;padding:0 6px;gap:4px}
 .mini-btn{
-  display:inline-flex;align-items:center;gap:6px;height:42px;min-width:46px;padding:0 14px;justify-content:center;
+  display:inline-flex;align-items:center;gap:6px;height:42px;min-width:46px;padding:0 12px;justify-content:center;
   border-radius:var(--r-pill);border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.05);
-  font-size:.84rem;color:var(--text-2);transition:background .2s;
+  font-size:.84rem;color:var(--text-2);transition:background .2s;white-space:nowrap;
 }
 @media (hover:hover){.mini-btn:hover{background:rgba(255,255,255,.12);color:#fff}}
 .mini-btn:disabled{opacity:.35;cursor:default}
-.read-nav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.read-updated{margin:12px 0 0;font-size:.78rem;color:var(--text-4)}
+.read-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .nav-btn{
-  display:flex;flex-direction:column;gap:3px;min-height:76px;padding:16px 20px;text-align:left;min-width:0;
+  display:flex;flex-direction:column;gap:3px;min-height:74px;padding:15px 18px;text-align:left;min-width:0;
   border-radius:var(--r-lg);border:1px solid var(--glass-border-soft);
-  background:linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.04));
-  -webkit-backdrop-filter:blur(var(--blur-sm));backdrop-filter:blur(var(--blur-sm));
-  transition:background .2s,border-color .2s;
+  background:var(--panel);transition:background .2s,border-color .2s;
 }
-@media (hover:hover){.nav-btn:hover:not(:disabled){border-color:rgba(255,255,255,.3);background:linear-gradient(160deg, rgba(255,255,255,.15), rgba(255,255,255,.06))}}
+@media (hover:hover){.nav-btn:hover:not(:disabled){border-color:rgba(255,255,255,.3);background:var(--panel-hover)}}
 .nav-btn.next{align-items:flex-end;text-align:right}
 .nav-btn small{display:flex;align-items:center;gap:4px;font-size:.76rem;color:var(--text-4)}
 .nav-btn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem;color:var(--text-2)}
 .nav-btn:disabled{opacity:.4;cursor:default}
 
+/* auto-scroll dock */
+.scroll-dock{
+  position:fixed;z-index:40;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:4px;padding:5px;border-radius:var(--r-pill);
+  background:rgba(12,21,17,.97);border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 18px 44px -16px rgba(0,0,0,.8);white-space:nowrap;
+  transform:translateX(-50%);transition:opacity .3s,transform .3s var(--ease);
+}
+body:not([data-view="read"]) .scroll-dock{display:none}
+.scroll-dock button{
+  height:44px;border:0;border-radius:var(--r-pill);background:none;color:var(--text-2);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,color .2s;
+}
+.scroll-dock .as-step{width:44px;font-size:1.25rem;line-height:1}
+.scroll-dock .as-main{padding:0 18px 0 14px;font-size:.9rem;font-weight:500;color:#fff;min-width:150px}
+.scroll-dock .as-main .as-rate{font-size:.76rem;color:var(--text-3);font-weight:400;font-variant-numeric:tabular-nums}
+@media (hover:hover){.scroll-dock button:hover{background:rgba(255,255,255,.1)}}
+.scroll-dock.playing .as-main{background:var(--light-fill);color:var(--ink)}
+.scroll-dock.playing .as-main .as-rate{color:rgba(16,32,26,.6)}
+body.autoscrolling .scroll-dock{opacity:.55}
+body.autoscrolling .scroll-dock:hover,body.autoscrolling .scroll-dock:focus-within{opacity:1}
+body.autoscrolling #view-read .bar{opacity:.35;transition:opacity .4s}
+body.autoscrolling #view-read .bar:hover,body.autoscrolling #view-read .bar:focus-within{opacity:1}
+body[data-view="read"] .app{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+body[data-view="read"] .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
+
+/* focus mode: only the prayer */
+body.focus .topbar{display:none}
+body.focus .read-side{display:none}
+body.focus .read-layout{grid-template-columns:minmax(0,1fr) !important;max-width:980px;margin:0 auto}
+body.focus .read-card{background:rgba(8,14,11,.35);border-color:rgba(255,255,255,.1);box-shadow:none}
+body.focus .read-card::before{display:none}
+
 /* ============================================================
    Editor
    ============================================================ */
-.edit-head h1{margin:0;font-size:1.5rem;font-weight:300;letter-spacing:-.02em}
-.edit-head p{margin:0;font-size:.8rem;color:var(--text-4);text-align:right}
-.edit-card{--pad:clamp(22px,4vw,44px);padding:var(--pad) var(--pad) 0}
-.field{margin-bottom:26px}
+.edit-wrap{max-width:1280px;margin:0 auto}
+.edit-bar{
+  position:sticky;top:12px;z-index:25;display:flex;align-items:center;gap:12px;
+  margin:0 0 18px;padding:7px 7px 7px 10px;border-radius:var(--r-pill);
+  background:rgba(14,24,19,.86);border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 18px 40px -22px rgba(0,0,0,.8);
+}
+.edit-bar h1{flex:1;min-width:0;margin:0;font-size:1.4rem;font-weight:300;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edit-bar .draft-note{font-size:.78rem;color:var(--text-4);white-space:nowrap}
+.edit-bar .btn{min-height:46px}
+.edit-bar #edSave{min-width:110px}
+.edit-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
+.edit-main{padding:clamp(22px,3.4vw,40px)}
+.edit-side{padding:clamp(20px,2.6vw,28px)}
+.field{margin-bottom:24px}
+.field:last-child{margin-bottom:0}
 .field-label{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;font-size:.86rem;color:var(--text-2)}
-.field-label .hint{font-size:.75rem;color:var(--text-4)}
+.field-label .hint{font-size:.75rem;color:var(--text-4);text-align:right}
 .input,.textarea{
   width:100%;display:block;padding:13px 16px;border-radius:var(--r-sm);
   background:rgba(255,255,255,.06);border:1px solid var(--glass-border-soft);
@@ -417,21 +555,30 @@ mark{background:var(--amber-soft);color:#fff;border-radius:3px;padding:0 1px}
 .input-title{font-size:1.22rem;min-height:58px}
 input[type="date"].input{color-scheme:dark;-webkit-appearance:none;appearance:none;text-align:left}
 input[type="date"]::-webkit-date-and-time-value{text-align:left}
-.textarea{resize:none;line-height:1.85;overflow:hidden}
-.textarea-prayer{font-family:var(--font-read);font-size:1.08rem;line-height:2;min-height:280px;padding:18px}
-.textarea-memo{min-height:104px}
-.field-row{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}
-.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;border:0;padding:0;margin:0}
+.textarea{resize:none;line-height:1.8;overflow:hidden}
+.textarea-prayer{
+  font-family:var(--font-read);font-size:max(16px, calc(var(--read-size) * .92));line-height:var(--read-lh);
+  min-height:min(52vh,520px);padding:18px 18px 22px;
+}
+.textarea-memo{min-height:96px}
+.cat-grid{display:flex;flex-wrap:wrap;gap:7px;border:0;padding:0;margin:0}
 .cat-opt{position:relative}
 .cat-opt input{position:absolute;opacity:0;pointer-events:none;inset:0}
 .cat-opt span{
-  display:flex;align-items:center;justify-content:center;height:46px;padding:0 8px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;height:42px;padding:0 15px;cursor:pointer;
   border-radius:var(--r-pill);border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.05);
-  font-size:.9rem;color:var(--text-2);transition:background .2s,color .2s;white-space:nowrap;
+  font-size:.9rem;color:var(--text-2);transition:background .15s,color .15s;white-space:nowrap;user-select:none;
 }
 @media (hover:hover){.cat-opt span:hover{background:rgba(255,255,255,.1)}}
 .cat-opt input:checked + span{background:var(--light-fill);color:var(--ink);border-color:transparent;font-weight:600}
+.cat-opt input:checked + span::before{
+  content:"";width:10px;height:6px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:rotate(-45deg) translate(1px,-2px);
+}
+.cat-opt input[type="radio"]:checked + span::before{display:none}
 .cat-opt input:focus-visible + span{outline:2px solid #fff;outline-offset:2px}
+.cat-note{margin:10px 0 0;font-size:.78rem;color:var(--text-4);line-height:1.5}
+.cat-note.warn{color:var(--amber)}
 .tag-box{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:52px;padding:7px 10px;cursor:text}
 .tag-chips{display:contents}
 .tag-chip{display:inline-flex;align-items:center;height:34px;padding:0 3px 0 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.15);font-size:.85rem}
@@ -442,15 +589,8 @@ input[type="date"]::-webkit-date-and-time-value{text-align:left}
 .field-meta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:.76rem;color:var(--text-4)}
 .field-error{color:var(--danger)}
 .is-invalid{border-color:rgba(255,154,138,.75) !important}
-.edit-actions{
-  position:sticky;bottom:0;z-index:2;display:flex;gap:10px;align-items:center;
-  margin:8px calc(-1 * var(--pad)) 0;
-  padding:16px var(--pad) calc(16px + env(safe-area-inset-bottom));
-  border-top:1px solid rgba(255,255,255,.1);border-radius:0 0 var(--r-xl) var(--r-xl);
-  background:rgba(16,28,22,.55);
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
-}
-.edit-actions .spacer{flex:1}
+.edit-danger{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.edit-danger .btn{width:100%}
 
 /* ============================================================
    Toast / dialogs
@@ -459,8 +599,7 @@ input[type="date"]::-webkit-date-and-time-value{text-align:left}
   position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));z-index:200;
   display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);
   padding:12px 20px 12px 16px;border-radius:var(--r-pill);
-  background:rgba(22,36,29,.6);border:1px solid rgba(255,255,255,.24);
-  -webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%);
+  background:rgba(22,36,29,.92);border:1px solid rgba(255,255,255,.24);
   box-shadow:0 20px 50px -20px rgba(0,0,0,.7);font-size:.9rem;
   opacity:0;transform:translate(-50%,16px);pointer-events:none;transition:opacity .3s var(--ease), transform .3s var(--ease);
 }
@@ -483,9 +622,7 @@ dialog.modal[open] .modal-panel{animation:pop .24s var(--ease)}
 .modal-title{margin:0 0 8px;font-size:1.2rem;font-weight:500;letter-spacing:-.01em}
 .modal-msg{margin:0 0 26px;color:var(--text-2);font-size:.95rem;line-height:1.7}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end}
-dialog.settings{width:min(560px, calc(100vw - 32px))}
-/* The OS scrollbar looks foreign inside the glass sheet: hide it and mark the
-   scrollable edge with a soft fade instead. Wheel, touch and keys still scroll. */
+dialog.settings{width:min(620px, calc(100vw - 32px))}
 .modal-panel::-webkit-scrollbar{width:0;height:0;display:none}
 .modal-panel::after{
   content:"";position:sticky;bottom:calc(-1 * var(--panel-pad));z-index:3;
@@ -494,9 +631,10 @@ dialog.settings{width:min(560px, calc(100vw - 32px))}
   border-radius:0 0 var(--r-xl) var(--r-xl);pointer-events:none;
 }
 .set-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.set-section{padding:20px 0;border-top:1px solid rgba(255,255,255,.1)}
+.set-section{padding:22px 0;border-top:1px solid rgba(255,255,255,.1)}
 .set-section:first-of-type{border-top:0;padding-top:12px}
-.set-title{margin:0 0 12px;font-size:.88rem;font-weight:500;color:var(--text-2)}
+.set-title{margin:0 0 14px;font-size:.92rem;font-weight:600;color:#fff}
+.set-sub{margin:18px 0 8px;font-size:.84rem;color:var(--text-2)}
 .scene-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .scene-opt{position:relative;cursor:pointer}
 .scene-opt input{position:absolute;opacity:0;pointer-events:none}
@@ -505,7 +643,7 @@ dialog.settings{width:min(560px, calc(100vw - 32px))}
 .scene-opt input:checked ~ .scene-swatch{box-shadow:0 0 0 2px #fff}
 .scene-opt input:checked ~ .scene-name{color:#fff}
 .scene-opt input:focus-visible ~ .scene-swatch{outline:2px solid #fff;outline-offset:3px}
-.range-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:.9rem;color:var(--text-2)}
+.range-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:.9rem;color:var(--text-2)}
 .range-top output{font-variant-numeric:tabular-nums;color:#fff}
 input[type="range"]{
   --p:50%;width:100%;height:30px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer;
@@ -515,17 +653,21 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;hei
 input[type="range"]::-moz-range-track{height:4px;border-radius:4px;background:rgba(255,255,255,.2)}
 input[type="range"]::-moz-range-progress{height:4px;border-radius:4px;background:#fff}
 input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:0}
-.range-sample{margin-top:10px;font-family:var(--font-read);color:var(--text-2);line-height:1.8}
+.range-sample{
+  margin-top:14px;padding:14px 16px;border-radius:var(--r-md);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);
+  font-family:var(--font-read);color:var(--text-2);line-height:var(--read-lh);
+}
 .data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .data-grid .btn{width:100%}
 .set-note{margin:14px 0 0;font-size:.8rem;line-height:1.6;color:var(--text-4)}
+.set-note a{color:var(--text-3)}
 
 #setTitle:focus{outline:none}
 body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{display:none !important}
 .sync-pill{
   display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:var(--r-pill);
   border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.06);color:var(--text-2);font-size:.8rem;white-space:nowrap;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:default;
+  cursor:default;
 }
 .sync-dot{width:8px;height:8px;border-radius:50%;background:#86d9a8;box-shadow:0 0 8px rgba(134,217,168,.7);flex-shrink:0}
 .sync-pill[data-state="busy"] .sync-dot{background:#fff;box-shadow:0 0 8px rgba(255,255,255,.7);animation:syncPulse 1s ease-in-out infinite}
@@ -537,8 +679,6 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 @keyframes shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
 .card.is-skeleton{pointer-events:none}
 .card.is-skeleton .skel{height:12px}
-.hero .skel{height:14px;margin-bottom:12px}
-.hero .skel.title{height:40px;width:78%;margin-bottom:22px;border-radius:12px}
 .btn[aria-busy="true"]{opacity:.72;cursor:progress}
 .conn-card{border-radius:var(--r-md);background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);padding:6px 16px}
 .conn-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:9px 0;font-size:.86rem;border-top:1px solid rgba(255,255,255,.07)}
@@ -548,7 +688,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 .conn-row .is-err{color:var(--danger)}
 .conn-row .is-ok{color:#86d9a8}
 .segmented{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;margin-bottom:16px;
+  display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:4px;padding:4px;margin-bottom:16px;
   border-radius:var(--r-pill);background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);
 }
 .segmented label{position:relative;min-width:0}
@@ -559,6 +699,9 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 }
 .segmented input:checked + span{background:var(--light-fill);color:var(--ink);font-weight:600}
 .segmented input:focus-visible + span{outline:2px solid #fff;outline-offset:2px}
+.segmented.tight{margin-bottom:0}
+.font-seg span{font-size:.95rem}
+.font-seg label:first-child span{font-family:var(--font-serif)}
 .inline-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .inline-row .input{flex:1 1 160px;min-width:0}
 .inline-row .btn{flex:0 0 auto}
@@ -587,77 +730,129 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 .sheet-handle{display:none}
 
 /* ============================================================
-   Responsive
+   Wide screens — use the space
+   ============================================================ */
+@media (min-width:1100px){
+  .read-layout{grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  .read-side{position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:auto;scrollbar-width:none}
+  .read-side::-webkit-scrollbar{display:none}
+  .read-nav{grid-template-columns:1fr}
+  .nav-btn.next{align-items:flex-start;text-align:left}
+  .edit-layout{grid-template-columns:minmax(0,1fr) 380px;gap:24px}
+  .edit-side{position:sticky;top:84px}
+}
+@media (min-width:1500px){
+  .list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
+
+/* ============================================================
+   Tablet / phone
    ============================================================ */
 @media (max-width:1023px){
   .home-grid{grid-template-columns:minmax(0,1fr)}
   .hero-col{position:static}
-  .hero{min-height:440px}
+  .hero{min-height:auto}
+  .hero-cross{min-height:150px}
 }
 @media (max-width:719px){
-  :root{--blur:22px;--blur-sm:12px}
-  .topbar{padding-bottom:16px}
+  :root{--blur:18px;--blur-sm:10px}
+  .grain{display:none}
+  .topbar{padding-bottom:14px}
   body[data-view="read"] .topbar,body[data-view="edit"] .topbar{display:none}
-  .hero-excerpt{-webkit-line-clamp:3;font-size:.95rem;line-height:1.85}
-  .hero-note{margin-top:18px}
-  .chips{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
-  .card{padding:18px 18px 16px}
-  #view-read .bar{
-    position:sticky;top:0;z-index:20;margin:0 -16px 14px;
-    padding:calc(8px + env(safe-area-inset-top)) 16px 8px;
-    background:rgba(10,18,14,.92);-webkit-backdrop-filter:blur(20px) saturate(140%);backdrop-filter:blur(20px) saturate(140%);
-    border-bottom:1px solid rgba(255,255,255,.1);
+  body[data-view="read"] .app,body[data-view="edit"] .app{padding-top:0}
+  .brand-en{font-size:1.75rem}
+
+  /* home */
+  .hero{padding:20px 20px 18px;border-radius:26px}
+  .hero-cross{min-height:104px;margin:2px 0 0}
+  .hero-cross svg{width:70px}
+  .verse-body{font-size:1.08rem;line-height:1.75}
+  .hero-bottom{margin-top:22px}
+  .list-head{
+    position:sticky;top:0;z-index:20;margin:0 -16px;padding:8px 16px 2px;
+    transition:background .2s;
   }
-  .edit-head{padding-top:6px}
-  .read-card{padding:26px 22px 22px}
-  .read-title{font-size:1.7rem;margin-top:18px}
-  .read-rule{margin:22px 0 24px}
-  .read-body{line-height:1.95}
-  .read-tools{margin-top:28px}
-  .edit-card{--pad:18px}
-  .edit-actions{background:rgba(10,18,14,.93)}
-  .bg-photo-controls > *{flex:1 1 100% !important}
-  .inline-row .btn{flex:1 1 auto}
-  .sheet-handle{display:block;width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.3);margin:-14px auto 14px}
-  .modal-panel{overscroll-behavior:contain}
+  .list-head.stuck{
+    padding-top:calc(8px + env(safe-area-inset-top));
+    background:linear-gradient(180deg, rgba(10,18,14,.96) 78%, rgba(10,18,14,0));
+  }
+  .toolbar{gap:8px}
+  .search{height:48px;padding-left:15px}
+  .select,.view-toggle{height:48px}
+  .select{padding:0 30px 0 13px;background-position:right 11px center;max-width:104px;font-size:.86rem}
+  .view-toggle{padding:3px}
+  .view-toggle button{width:38px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:12px -16px 8px;padding:0 16px 2px;scroll-padding-inline:16px;
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{height:38px;padding:0 14px}
+  .list-meta{margin:8px 2px 10px}
+  .list{grid-template-columns:1fr;gap:10px}
+  .card{min-height:0;padding:16px 16px 14px;gap:8px;contain-intrinsic-size:auto 170px}
+  .card-excerpt{-webkit-line-clamp:2}
+  .list.compact .card{padding:13px 14px 13px 16px}
+  .fab{height:54px}
+  body[data-view="home"] .fab{display:inline-flex}
+  body[data-view="home"] .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
+  body[data-view="home"] .app{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+  .to-top{left:calc(16px + env(safe-area-inset-left));transform:translate(0,12px);bottom:calc(26px + env(safe-area-inset-bottom))}
+  .to-top.show{transform:none}
   .brand-date,.btn-new-top{display:none}
   .sync-pill{width:38px;padding:0;justify-content:center}
   .sync-pill .sync-text{display:none}
   .sync-pill[data-state="error"],.sync-pill[data-state="offline"]{width:auto;padding:0 12px}
   .sync-pill[data-state="error"] .sync-text,.sync-pill[data-state="offline"] .sync-text{display:inline}
-  body[data-view="home"] .fab{display:inline-flex}
-  body[data-view="home"] .toast{bottom:calc(92px + env(safe-area-inset-bottom))}
-  body[data-view="home"] .app{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
-  .hero{min-height:auto;padding:22px 22px 20px;border-radius:26px}
-  .hero-main{padding-top:40px}
-  .hero-title{font-size:2rem}
-  .verse-body{font-size:1.08rem;line-height:1.9;-webkit-line-clamp:7}
-  .hero-bottom{padding-top:28px}
-  .chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding:0 16px 2px}
-  .chips::-webkit-scrollbar{display:none}
-  .select{padding:0 34px 0 14px;background-position:right 13px center;max-width:118px}
-  .list{grid-template-columns:1fr;gap:12px}
-  .card{min-height:0}
-  .read-card{border-radius:26px}
+
+  /* reader */
+  #view-read .bar{
+    position:sticky;top:0;z-index:20;margin:0 -16px 12px;
+    padding:calc(8px + env(safe-area-inset-top)) 16px 8px;
+    background:var(--bar-bg);border-bottom:1px solid rgba(255,255,255,.1);
+  }
+  .bar-actions{gap:6px}
+  .bar-actions .icon-btn{width:44px;height:44px}
+  .read-card{padding:24px 20px 26px;border-radius:24px}
+  .read-card.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(14,24,19,.72)}
+  .read-title{font-size:1.6rem;margin-top:14px}
+  .read-rule{margin:20px 0 22px}
   .read-body{max-width:none}
+  .side-card{padding:18px 16px}
+  .tool-grid{grid-template-columns:repeat(4,1fr)}
   .read-nav{gap:10px}
-  .nav-btn{padding:14px 16px;min-height:70px}
-  .field-row{grid-template-columns:1fr;gap:0}
-  .field-row .field{margin-bottom:26px}
-  .cat-grid{grid-template-columns:repeat(3,1fr)}
-  .edit-head p{display:none}
-  .edit-actions .btn{flex:1;padding:0 12px}
-  .edit-actions .spacer{display:none}
-  .edit-actions #edDelete{flex:0 0 auto}
-  .textarea-prayer{min-height:240px}
-  dialog.settings{width:100%;margin:auto 0 0;max-height:90vh}
-  dialog.settings .modal-panel{border-radius:26px 26px 0 0;max-height:90vh;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .nav-btn{padding:13px 15px;min-height:66px}
+  .scroll-dock .as-main{min-width:132px;padding:0 14px 0 12px}
+
+  /* editor: actions live in the top bar, never over the text you type */
+  .edit-bar{
+    top:0;margin:0 -16px 12px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;border-radius:0;
+    background:var(--bar-bg);border:0;border-bottom:1px solid rgba(255,255,255,.1);box-shadow:none;gap:8px;
+  }
+  .edit-bar h1{font-size:1.08rem;font-weight:500;text-align:center}
+  .edit-bar .draft-note{display:none}
+  .edit-bar .btn{min-height:42px;padding:0 14px}
+  .edit-bar #edSave{min-width:76px}
+  .edit-main,.edit-side{border-radius:24px}
+  .edit-main.glass,.edit-side.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(14,24,19,.72)}
+  .edit-main{padding:18px 16px 20px}
+  .edit-side{padding:18px 16px 20px}
+  .input-title{font-size:1.1rem;min-height:54px}
+  .textarea-prayer{min-height:46vh;padding:16px 14px 20px}
+  .field-label .hint{max-width:62%}
+
+  /* settings sheet */
+  .sheet-handle{display:block;width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.3);margin:-14px auto 14px}
+  .bg-photo-controls > *{flex:1 1 100% !important}
+  .inline-row .btn{flex:1 1 auto}
+  dialog.settings{width:100%;margin:auto 0 0;max-height:92vh}
+  dialog.settings .modal-panel{border-radius:26px 26px 0 0;max-height:92vh;padding:24px 20px calc(28px + env(safe-area-inset-bottom))}
   dialog.settings .modal-panel::after{border-radius:0;bottom:calc(-28px - env(safe-area-inset-bottom));margin-bottom:calc(-28px - env(safe-area-inset-bottom))}
+  .segmented span{font-size:.84rem}
 }
 @media (max-width:380px){
-  .cat-grid{grid-template-columns:repeat(2,1fr)}
-  .bar-actions{gap:6px}
-  .icon-btn{width:44px;height:44px}
+  .bar-actions{gap:4px}
+  .bar-actions .icon-btn,.icon-btn{width:42px;height:42px}
+  .select{max-width:92px}
+  .tool-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -670,6 +865,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 <div class="bg-photo" id="bgB" aria-hidden="true"></div>
 <div class="bg-veil" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
+<div class="read-progress" id="readProgress" aria-hidden="true"></div>
 
 <div class="app">
   <header class="topbar">
@@ -696,91 +892,113 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
           <article class="hero glass" id="hero" aria-live="polite"></article>
         </aside>
         <div class="list-col">
-          <div class="toolbar">
-            <label class="search glass-soft" for="q">
-              <span id="searchIcon"></span>
-              <span class="sr-only">기도문 검색</span>
-              <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="제목, 내용, 태그로 검색">
-              <button class="clear-btn" type="button" data-action="clear-search" aria-label="검색어 지우기" hidden id="btnClear"></button>
-            </label>
-            <select id="sort" class="select" aria-label="정렬">
-              <option value="new">최신순</option>
-              <option value="old">오래된순</option>
-              <option value="title">제목순</option>
-            </select>
+          <div class="list-head-sentinel" id="listHeadSentinel" aria-hidden="true"></div>
+          <div class="list-head" id="listHead">
+            <div class="toolbar">
+              <label class="search glass-soft" for="q">
+                <span id="searchIcon"></span>
+                <span class="sr-only">기도문 검색</span>
+                <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="제목, 내용, 태그로 검색">
+                <button class="clear-btn" type="button" data-action="clear-search" aria-label="검색어 지우기" hidden id="btnClear"></button>
+              </label>
+              <select id="sort" class="select" aria-label="정렬">
+                <option value="new">최신순</option>
+                <option value="old">오래된순</option>
+                <option value="title">제목순</option>
+              </select>
+              <div class="view-toggle" role="group" aria-label="보기 방식">
+                <button type="button" id="viewCard" data-view-mode="card" aria-label="카드로 보기" title="카드로 보기"></button>
+                <button type="button" id="viewCompact" data-view-mode="compact" aria-label="목록으로 보기" title="목록으로 보기"></button>
+              </div>
+            </div>
+            <div class="chips" id="chips" role="group" aria-label="카테고리 필터"></div>
           </div>
-          <div class="chips" id="chips" role="group" aria-label="카테고리 필터"></div>
           <div class="list-meta" id="listMeta" aria-live="polite"></div>
           <div class="list" id="list"></div>
+          <div class="list-more" id="listMore" hidden><button class="btn" type="button" id="listMoreBtn"></button></div>
         </div>
       </div>
     </section>
 
     <!-- READ -->
     <section id="view-read" class="view" hidden aria-label="기도문 보기">
-      <div class="narrow">
+      <div class="read-wrap">
         <div class="bar">
           <button class="btn btn-back" type="button" data-action="back" id="rdBack"></button>
           <div class="bar-actions">
+            <button class="icon-btn plain" type="button" id="rdFocus" aria-pressed="false" aria-label="집중 모드" title="집중 모드"></button>
             <button class="icon-btn" type="button" id="rdFav" aria-pressed="false" aria-label="즐겨찾기"></button>
-            <button class="icon-btn" type="button" id="rdEdit" aria-label="수정"></button>
-            <button class="icon-btn is-danger" type="button" id="rdDelete" aria-label="삭제"></button>
+            <button class="icon-btn" type="button" id="rdEdit" aria-label="수정" title="수정"></button>
+            <button class="icon-btn is-danger" type="button" id="rdDelete" aria-label="삭제" title="삭제"></button>
           </div>
         </div>
-        <article class="read-card glass">
-          <div class="read-meta">
-            <span class="pill" id="rdCat"></span>
-            <time id="rdDate"></time>
-          </div>
-          <h1 class="read-title" id="rdTitle"></h1>
-          <hr class="read-rule">
-          <div class="read-body" id="rdBody"></div>
-          <div class="read-tags" id="rdTags"></div>
-          <div class="read-memo" id="rdMemo">
-            <div class="memo-label">메모</div>
-            <p id="rdMemoText"></p>
-          </div>
-          <div class="read-tools">
-            <span id="rdUpdated"></span>
-            <div class="tool-group">
-              <button class="mini-btn" type="button" id="rdSmaller" aria-label="글자 작게">가−</button>
-              <button class="mini-btn" type="button" id="rdLarger" aria-label="글자 크게">가+</button>
-              <button class="mini-btn" type="button" id="rdCopy"></button>
+        <div class="read-layout">
+          <article class="read-card glass">
+            <div class="read-meta" id="rdMeta">
+              <span id="rdCats" style="display:contents"></span>
+              <time id="rdDate"></time>
             </div>
-          </div>
-        </article>
-        <nav class="read-nav" aria-label="다른 기도문으로 이동">
-          <button class="nav-btn" type="button" id="rdPrev"><small></small><span></span></button>
-          <button class="nav-btn next" type="button" id="rdNext"><small></small><span></span></button>
-        </nav>
+            <h1 class="read-title" id="rdTitle"></h1>
+            <hr class="read-rule">
+            <div class="read-body" id="rdBody"></div>
+            <div class="read-end" aria-hidden="true"></div>
+          </article>
+          <aside class="read-side" aria-label="기도문 정보와 도구">
+            <div class="side-card" id="rdTagsCard">
+              <h2 class="side-title">태그</h2>
+              <div class="read-tags" id="rdTags"></div>
+            </div>
+            <div class="side-card" id="rdMemo">
+              <h2 class="side-title">메모</h2>
+              <div class="read-memo"><p id="rdMemoText"></p></div>
+            </div>
+            <div class="side-card">
+              <h2 class="side-title">읽기 도구</h2>
+              <div class="tool-grid">
+                <button class="mini-btn" type="button" id="rdSmaller" aria-label="글자 작게">가−</button>
+                <button class="mini-btn" type="button" id="rdLarger" aria-label="글자 크게">가+</button>
+                <button class="mini-btn" type="button" id="rdFont" aria-label="글꼴 바꾸기"></button>
+                <button class="mini-btn" type="button" id="rdCopy"></button>
+              </div>
+              <p class="read-updated" id="rdUpdated"></p>
+            </div>
+            <nav class="read-nav" aria-label="다른 기도문으로 이동">
+              <button class="nav-btn" type="button" id="rdPrev"><small></small><span></span></button>
+              <button class="nav-btn next" type="button" id="rdNext"><small></small><span></span></button>
+            </nav>
+          </aside>
+        </div>
       </div>
     </section>
 
     <!-- EDIT -->
     <section id="view-edit" class="view" hidden aria-label="기도문 작성">
-      <div class="narrow">
-        <div class="bar edit-head">
+      <div class="edit-wrap">
+        <div class="edit-bar">
+          <button class="btn btn-quiet" type="button" id="edCancel">취소</button>
           <h1 id="edHeading">새 기도문</h1>
-          <p>작성 중인 내용은 이 브라우저에 임시로 보관됩니다</p>
+          <span class="draft-note" id="draftNote">작성 중인 내용은 자동으로 임시 보관됩니다</span>
+          <button class="btn btn-primary" type="button" id="edSave">저장</button>
         </div>
-        <form class="edit-card glass" id="editForm" novalidate autocomplete="off">
-          <div class="field">
-            <label class="field-label" for="fTitle">제목 <span class="hint">비워 두면 본문 첫 줄로 정합니다</span></label>
-            <input class="input input-title" id="fTitle" maxlength="80" placeholder="예: 아침을 여는 감사" enterkeyhint="next">
+        <form class="edit-layout" id="editForm" novalidate autocomplete="off">
+          <div class="edit-main glass">
+            <div class="field">
+              <label class="field-label" for="fTitle">제목 <span class="hint">비워 두면 본문 첫 줄로 정합니다</span></label>
+              <input class="input input-title" id="fTitle" maxlength="80" placeholder="예: 아침을 여는 감사" enterkeyhint="next">
+            </div>
+            <div class="field">
+              <label class="field-label" for="fContent">기도문 <span class="hint" id="contentCount">0자</span></label>
+              <textarea class="textarea textarea-prayer" id="fContent" placeholder="주님, 오늘 마음에 머무는 것을 적어 봅니다."></textarea>
+              <div class="field-meta"><span class="field-error" id="errContent"></span></div>
+            </div>
           </div>
 
-          <fieldset class="field" style="border:0;padding:0;margin:0 0 26px">
-            <legend class="field-label" style="padding:0">카테고리</legend>
-            <div class="cat-grid" id="fCats"></div>
-          </fieldset>
-
-          <div class="field">
-            <label class="field-label" for="fContent">기도문</label>
-            <textarea class="textarea textarea-prayer" id="fContent" placeholder="주님, 오늘 마음에 머무는 것을 적어 봅니다."></textarea>
-            <div class="field-meta"><span class="field-error" id="errContent"></span><span id="contentCount">0자</span></div>
-          </div>
-
-          <div class="field-row">
+          <div class="edit-side glass">
+            <fieldset class="field" style="border:0;padding:0;margin:0 0 24px">
+              <legend class="field-label" style="padding:0;width:100%">카테고리 <span class="hint" id="catHint">여러 개 선택할 수 있습니다</span></legend>
+              <div class="cat-grid" id="fCats"></div>
+              <p class="cat-note" id="catNote" hidden></p>
+            </fieldset>
             <div class="field">
               <label class="field-label" for="fDate">날짜</label>
               <input class="input" id="fDate" type="date">
@@ -792,18 +1010,13 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
                 <input id="fTag" maxlength="20" placeholder="예: 아침" enterkeyhint="done">
               </div>
             </div>
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="fMemo">메모 <span class="hint">기도 제목의 배경이나 응답을 기록해 두세요</span></label>
-            <textarea class="textarea textarea-memo" id="fMemo" placeholder="예: 다음 주 수요일까지 매일 저녁 기도"></textarea>
-          </div>
-
-          <div class="edit-actions">
-            <button class="btn btn-danger" type="button" id="edDelete" hidden></button>
-            <span class="spacer"></span>
-            <button class="btn" type="button" id="edCancel">취소</button>
-            <button class="btn btn-primary" type="button" id="edSave">저장</button>
+            <div class="field">
+              <label class="field-label" for="fMemo">메모 <span class="hint">배경이나 응답을 기록해 두세요</span></label>
+              <textarea class="textarea textarea-memo" id="fMemo" placeholder="예: 다음 주 수요일까지 매일 저녁 기도"></textarea>
+            </div>
+            <div class="edit-danger" id="edDangerRow" hidden>
+              <button class="btn btn-danger" type="button" id="edDelete"></button>
+            </div>
           </div>
         </form>
       </div>
@@ -812,7 +1025,13 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 </div>
 
 <button class="fab" type="button" data-action="new" id="fab"></button>
+<button class="to-top" type="button" id="toTop" aria-label="맨 위로"></button>
 
+<div class="scroll-dock" id="scrollDock" role="group" aria-label="자동 스크롤">
+  <button class="as-step" type="button" id="asSlower" aria-label="더 천천히" title="더 천천히">−</button>
+  <button class="as-main" type="button" id="asToggle" aria-pressed="false"></button>
+  <button class="as-step" type="button" id="asFaster" aria-label="더 빠르게" title="더 빠르게">+</button>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastIcon"></span><span id="toastText"></span></div>
 
@@ -836,6 +1055,63 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
       <h2 class="modal-title" id="setTitle" tabindex="-1" style="margin:0">설정</h2>
       <button class="icon-btn" type="button" id="setClose" aria-label="설정 닫기"></button>
     </div>
+
+    <section class="set-section">
+      <h3 class="set-title">읽기</h3>
+      <div class="set-sub" style="margin-top:0">글꼴</div>
+      <div class="segmented font-seg" role="radiogroup" aria-label="기도문 글꼴" id="fontGroup" style="--n:2">
+        <label><input type="radio" name="readFont" value="serif"><span>세리프 (바탕)</span></label>
+        <label><input type="radio" name="readFont" value="sans"><span>산세리프 (고딕)</span></label>
+      </div>
+      <div class="range-block" style="margin-top:4px">
+        <div class="range-top"><label for="sizeRange">글자 크기</label><output id="sizeOut" for="sizeRange"></output></div>
+        <input type="range" id="sizeRange" min="0.95" max="1.7" step="0.05">
+      </div>
+      <div class="range-block">
+        <div class="range-top"><label for="lhRange">줄 간격</label><output id="lhOut" for="lhRange"></output></div>
+        <input type="range" id="lhRange" min="1.4" max="2.2" step="0.05">
+      </div>
+      <p class="range-sample" id="rangeSample">주님, 오늘도 새로운 아침을 허락하시니 감사합니다.<br>밤새 지켜 주신 손길을 기억하며 조용히 하루를 엽니다.</p>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-title">자동 스크롤</h3>
+      <label class="switch" for="asAuto">
+        <span class="switch-text"><b>기도문을 열면 자동으로 스크롤</b><small>제목을 읽을 시간을 둔 뒤, 읽는 속도에 맞춰 천천히 내려갑니다. 끄면 기도문 화면 아래의 재생 버튼을 눌러 시작합니다.</small></span>
+        <input type="checkbox" id="asAuto"><span class="switch-track" aria-hidden="true"></span>
+      </label>
+      <div class="range-block">
+        <div class="range-top"><label for="cpmRange">읽는 속도</label><output id="cpmOut" for="cpmRange"></output></div>
+        <input type="range" id="cpmRange" min="120" max="600" step="10">
+      </div>
+      <p class="set-note">소리 내어 기도하면 1분에 250~300자, 눈으로 읽으면 400자 안팎이 알맞습니다. 스크롤 중에 화면을 직접 움직이면 잠시 멈췄다가 이어 가고, 본문을 한 번 누르면 멈춤·재개합니다. 자동 스크롤 중에는 화면이 꺼지지 않습니다(지원하는 브라우저).</p>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-title">오늘의 말씀</h3>
+      <div class="set-sub" style="margin-top:0">번역</div>
+      <div class="segmented" role="radiogroup" aria-label="말씀 번역" id="verseTrGroup">
+        <label><input type="radio" name="verseTr" value="modern"><span>현대어</span></label>
+        <label><input type="radio" name="verseTr" value="krv"><span>개역한글</span></label>
+        <label><input type="radio" name="verseTr" value="both"><span>함께 보기</span></label>
+      </div>
+      <div class="set-sub">고르는 범위</div>
+      <div class="segmented" role="radiogroup" aria-label="말씀 범위" id="versePoolGroup" style="--n:2">
+        <label><input type="radio" name="versePool" value="curated"><span>엄선한 말씀 389곳</span></label>
+        <label><input type="radio" name="versePool" value="all"><span>성경 전체</span></label>
+      </div>
+      <div class="set-sub">바뀌는 주기</div>
+      <div class="segmented" role="radiogroup" aria-label="말씀이 바뀌는 주기" id="verseCycleGroup" style="--n:2">
+        <label><input type="radio" name="verseCycle" value="day"><span>하루에 한 번 (0시)</span></label>
+        <label><input type="radio" name="verseCycle" value="hour"><span>매시간</span></label>
+      </div>
+      <p class="bg-status" id="verseStatus" style="margin-top:0"></p>
+      <div class="inline-row" style="margin-top:12px">
+        <button class="btn" type="button" id="verseReload">다시 불러오기</button>
+        <button class="btn" type="button" id="verseClear">받아 둔 말씀 지우기</button>
+      </div>
+      <p class="set-note">현대어는 개역한글을 오늘의 말로 옮긴 <a href="https://github.com/cameleonh/open-korean-bible" target="_blank" rel="noopener">Open Korean Bible</a>(기완, CC BY 4.0)을 씁니다. 아직 현대어로 옮겨지지 않은 곳(시편·잠언·이사야 등)이나 말투가 지나치게 가벼운 곳은 개역한글로 보여 줍니다. 성경 본문은 파일에 들어 있지 않고, 그날의 말씀이 속한 책 한 권만 내려받아 이 브라우저에 보관합니다.</p>
+    </section>
 
     <section class="set-section">
       <h3 class="set-title">배경</h3>
@@ -901,12 +1177,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
         <button class="btn" type="button" id="catAddBtn">추가</button>
       </div>
       <p class="cat-msg" id="catMsg" aria-live="polite"></p>
-    </section>
-
-    <section class="set-section">
-      <div class="range-top"><label for="sizeRange">읽기 글자 크기</label><output id="sizeOut" for="sizeRange"></output></div>
-      <input type="range" id="sizeRange" min="0.95" max="1.7" step="0.05">
-      <p class="range-sample">주님, 오늘도 새로운 아침을 허락하시니 감사합니다.</p>
+      <p class="set-note" id="catSchemaNote" hidden></p>
     </section>
 
     <section class="set-section">
@@ -919,16 +1190,6 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
       </div>
       <input type="file" id="importFile" accept="application/json,.json" hidden>
       <p class="set-note">기도문과 카테고리는 Supabase 데이터베이스에 저장됩니다. 백업 파일은 데이터베이스 내용을 JSON으로 내려받거나 다시 올릴 때 씁니다.</p>
-    </section>
-
-    <section class="set-section">
-      <h3 class="set-title">오늘의 말씀</h3>
-      <p class="bg-status" id="verseStatus" style="margin-top:0"></p>
-      <div class="inline-row" style="margin-top:12px">
-        <button class="btn" type="button" id="verseReload">다시 불러오기</button>
-        <button class="btn" type="button" id="verseClear">받아 둔 말씀 지우기</button>
-      </div>
-      <p class="set-note">성경 본문은 파일에 들어 있지 않고, 그날의 말씀이 속한 책 한 권만 내려받아 이 브라우저에 보관합니다. index.html 과 같은 위치에 bible 폴더를 올려 두면 그 파일을 먼저 씁니다.</p>
     </section>
 
     <section class="set-section">
@@ -955,6 +1216,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
         <div class="conn-row"><span>프로젝트</span><span id="connHost"></span></div>
         <div class="conn-row"><span>이 브라우저의 계정</span><span id="connUser"></span></div>
         <div class="conn-row"><span>실시간 동기화</span><span id="connRealtime"></span></div>
+        <div class="conn-row"><span>여러 카테고리</span><span id="connMultiCat"></span></div>
       </div>
       <div class="inline-row" style="margin-top:12px">
         <button class="btn" type="button" id="btnReload">다시 불러오기</button>
@@ -998,7 +1260,8 @@ const SYNC_ACCOUNT_PASSWORD = '8238';
      id              → id            uuid          브라우저에서 생성 (PK)
      (익명 계정)      → user_id       uuid          DB가 auth.uid()로 자동 입력, RLS 소유자
      title           → title         text          최대 80자
-     category        → category      text          카테고리 이름 (최대 12자)
+     categories[0]   → category      text          대표 카테고리 (예전 버전 호환, DB 트리거가 맞춰 줌)
+     categories      → categories    text[]        여러 카테고리 (supabase-schema.sql 6번 적용 후)
      content         → content       text          기도문 본문
      date            → prayer_date   date          'YYYY-MM-DD'
      tags            → tags          text[]        최대 10개
@@ -1034,6 +1297,8 @@ const KEY_ITEMS = 'prayer.v1.items';
 const KEY_SET   = 'prayer.v1.settings';
 const KEY_DRAFT = 'prayer.v1.drafts';
 const SIZE_MIN = 0.95, SIZE_MAX = 1.7;
+const LH_MIN = 1.4, LH_MAX = 2.2;
+const CPM_MIN = 120, CPM_MAX = 600;
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -1056,12 +1321,63 @@ const ICONS = {
   download:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
   upload:'<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>',
   book:'<path d="M5 4.5h9.5A2.5 2.5 0 0 1 17 7v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H17"/><path d="M11 7.5v5M8.5 9.5h5"/>',
-  info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>'
+  info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>',
+  grid:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/>',
+  rows:'<path d="M4 6.5h16M4 12h16M4 17.5h16"/>',
+  shuffle:'<path d="M4 7h3.5c4.5 0 5.5 10 10 10H20M4 17h3.5c1.6 0 2.7-1.3 3.6-3M20 7h-2.5c-1.6 0-2.7 1.3-3.6 3"/><path d="M17.5 4.5L20 7l-2.5 2.5M17.5 14.5L20 17l-2.5 2.5"/>',
+  play:'<path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/>',
+  pause:'<rect x="6.5" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="13.7" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" stroke="none"/>',
+  focus:'<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>',
+  arrowUp:'<path d="M12 19V5M6 11l6-6 6 6"/>'
 };
 function icon(name, size = 20){
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 }
-const CROSS_MARK = '<svg class="hero-mark" viewBox="0 0 30 42" aria-hidden="true"><path d="M15 2v38M4 13h22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+/* 오늘의 말씀 십자가: 부드러운 헤일로 + 천천히 도는 빛살 + 끝이 살짝 퍼지는 라틴 십자가 */
+const CROSS_MARK = (() => {
+  const cx = 60, cy = 50, w = 4.6, f = 7.4;          // beam half-width, flared tip half-width
+  const top = 6, bot = 166, L = 16, R = 104, fl = 11;  // extents and flare length
+  const d = [
+    `M${cx - f} ${top}`, `L${cx + f} ${top}`, `Q${cx + w} ${top + 3} ${cx + w} ${top + fl}`,
+    `L${cx + w} ${cy - w}`, `L${R - fl} ${cy - w}`, `Q${R - 3} ${cy - w} ${R} ${cy - f}`,
+    `L${R} ${cy + f}`, `Q${R - 3} ${cy + w} ${R - fl} ${cy + w}`, `L${cx + w} ${cy + w}`,
+    `L${cx + w} ${bot - fl}`, `Q${cx + w} ${bot - 3} ${cx + f} ${bot}`, `L${cx - f} ${bot}`,
+    `Q${cx - w} ${bot - 3} ${cx - w} ${bot - fl}`, `L${cx - w} ${cy + w}`, `L${L + fl} ${cy + w}`,
+    `Q${L + 3} ${cy + w} ${L} ${cy + f}`, `L${L} ${cy - f}`, `Q${L + 3} ${cy - w} ${L + fl} ${cy - w}`,
+    `L${cx - w} ${cy - w}`, `L${cx - w} ${top + fl}`, `Q${cx - w} ${top + 3} ${cx - f} ${top}`, 'Z'
+  ].join(' ');
+  let rays = '';
+  for (let i = 0; i < 24; i++) {
+    const a = i / 24 * Math.PI * 2, long = i % 2 === 0;
+    const r1 = 30, r2 = long ? 92 : 66;
+    rays += `<line x1="${(cx + Math.cos(a) * r1).toFixed(1)}" y1="${(cy + Math.sin(a) * r1).toFixed(1)}" x2="${(cx + Math.cos(a) * r2).toFixed(1)}" y2="${(cy + Math.sin(a) * r2).toFixed(1)}" stroke-width="${long ? 1.1 : .7}"/>`;
+  }
+  return `<svg viewBox="0 0 120 172" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="crHalo" cx="${cx}" cy="${cy}" r="70" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#fff4dc" stop-opacity=".62"/><stop offset=".32" stop-color="#ffd9a0" stop-opacity=".24"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="crRayFade" cx="${cx}" cy="${cy}" r="94" gradientUnits="userSpaceOnUse">
+        <stop offset=".3" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      </radialGradient>
+      <mask id="crRayMask"><rect x="-40" y="-50" width="200" height="200" fill="url(#crRayFade)"/></mask>
+      <linearGradient id="crBody" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".3" stop-color="#fff8ea"/><stop offset=".75" stop-color="#ffe3b6"/><stop offset="1" stop-color="#f3b979" stop-opacity=".85"/>
+      </linearGradient>
+      <linearGradient id="crEdge" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="crGlow" x="-60%" y="-40%" width="220%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
+    </defs>
+    <circle class="cross-halo" cx="${cx}" cy="${cy}" r="70" fill="url(#crHalo)"/>
+    <g class="cross-rays" stroke="#ffe9c4" stroke-linecap="round" opacity=".38" mask="url(#crRayMask)">${rays}</g>
+    <circle cx="${cx}" cy="${cy}" r="34" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width=".8"/>
+    <path d="${d}" fill="#ffd79c" opacity=".55" filter="url(#crGlow)"/>
+    <path d="${d}" fill="url(#crBody)"/>
+    <path d="M${cx} ${top + 8}V${bot - 10}" stroke="url(#crEdge)" stroke-width=".9" opacity=".7"/>
+    <circle class="cross-core" cx="${cx}" cy="${cy}" r="5.5" fill="#fff" filter="url(#crGlow)"/>
+  </svg>`;
+})();
 
 function esc(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1127,10 +1443,12 @@ function normalize(p){
   const tags = Array.isArray(p.tags)
     ? [...new Set(p.tags.map(t => String(t).replace(/^#+/, '').trim().slice(0, 20)).filter(Boolean))].slice(0, 10)
     : [];
+  const categories = normCats(p.categories, p.category);
   return {
     id: UUID_RE.test(String(p.id || '')) ? String(p.id).toLowerCase() : uid(),
     title: (title || deriveTitle(content)).slice(0, 80),
-    category: String(p.category ?? '').trim().slice(0, CAT_MAX) || '기타',
+    category: categories[0],
+    categories,
     content,
     date: parseDate(p.date) ? p.date : todayStr(),
     tags,
@@ -1140,6 +1458,17 @@ function normalize(p){
     updatedAt: Number(p.updatedAt) || Number(p.createdAt) || now
   };
 }
+
+/* A prayer can sit in several categories. The first one is its "main" category
+   (stored in the old `category` column too, so older copies of the app still work). */
+const CATS_PER_PRAYER = 15;
+function normCats(list, single){
+  const raw = Array.isArray(list) && list.length ? list : [single];
+  const out = [...new Set(raw.map(c => String(c ?? '').trim().slice(0, CAT_MAX)).filter(Boolean))].slice(0, CATS_PER_PRAYER);
+  return out.length ? out : ['기타'];
+}
+const catsOf = p => (p && Array.isArray(p.categories) && p.categories.length) ? p.categories : [p && p.category || '기타'];
+const inCat = (p, c) => catsOf(p).includes(c);
 
 function makeSamples(){
   const now = Date.now();
@@ -1181,10 +1510,21 @@ function setCatRows(rows){
 const LEGACY_CATS = (() => { const s = store.get(KEY_SET, {}); return s && Array.isArray(s.categories) ? s.categories : null; })();
 let settings = Object.assign({
   scene:'meadow', readSize:1.2, sort:'new',
-  bgMode:'folder', bgFolder:'images/', bgBlur:18, bgDim:0.3, bgInterval:0, bgCache:null
+  bgMode:'folder', bgFolder:'images/', bgBlur:18, bgDim:0.3, bgInterval:0, bgCache:null,
+  readFont:'serif', lineHeight:1.8, listView:'card',
+  autoScroll:false, scrollCpm:260,
+  verseTr:'modern', versePool:'curated', verseCycle:'hour'
 }, store.get(KEY_SET, {}) || {});
 delete settings.categories;     // categories now live in public.prayer_categories
 settings.readSize = Math.min(SIZE_MAX, Math.max(SIZE_MIN, Number(settings.readSize) || 1.2));
+if (!['serif','sans'].includes(settings.readFont)) settings.readFont = 'serif';
+settings.lineHeight = Math.min(LH_MAX, Math.max(LH_MIN, Number(settings.lineHeight) || 1.8));
+if (!['card','compact'].includes(settings.listView)) settings.listView = 'card';
+settings.autoScroll = !!settings.autoScroll;
+settings.scrollCpm = Math.min(CPM_MAX, Math.max(CPM_MIN, Math.round(Number(settings.scrollCpm) || 260)));
+if (!['modern','krv','both'].includes(settings.verseTr)) settings.verseTr = 'modern';
+if (!['curated','all'].includes(settings.versePool)) settings.versePool = 'curated';
+if (!['day','hour'].includes(settings.verseCycle)) settings.verseCycle = 'hour';
 if (!['folder','picked','scene'].includes(settings.bgMode)) settings.bgMode = 'folder';
 settings.bgBlur = Math.min(40, Math.max(0, Number(settings.bgBlur) || 0));
 settings.bgDim = Math.min(0.7, Math.max(0, Number.isFinite(Number(settings.bgDim)) ? Number(settings.bgDim) : 0.3));
@@ -1201,10 +1541,10 @@ function saveDrafts(){ store.set(KEY_DRAFT, drafts); }
    ------------------------------------------------------------ */
 const state = {
   q: '', cat: 'all', sort: ['new','old','title'].includes(settings.sort) ? settings.sort : 'new',
-  route: null, homeScroll: 0,
+  route: null, homeScroll: 0, homeShown: 0,
   editId: null, editBase: '', tags: [],
   heroIntroDone: false,
-  saving: false, catBusy: false, verseSeed: null
+  saving: false, catBusy: false, verseSeed: null, formCats: [], focus: false
 };
 const deletedIds = new Set();
 
@@ -1214,9 +1554,20 @@ const deletedIds = new Set();
 function tokens(){
   return state.q.trim().toLowerCase().split(/\s+/).map(t => t.replace(/^#+/, '')).filter(Boolean);
 }
+/* Lower-cased search text per prayer, rebuilt only when the prayer changes —
+   typing in the search box no longer re-joins every prayer on every keystroke. */
+const hayCache = new Map();
+function hayOf(p){
+  const key = p.updatedAt + '|' + catsOf(p).join(',') + '|' + p.title;
+  const hit = hayCache.get(p.id);
+  if (hit && hit.key === key) return hit.hay;
+  const hay = [p.title, p.content, p.tags.join(' '), p.memo, catsOf(p).join(' ')].join('\n').toLowerCase();
+  hayCache.set(p.id, { key, hay });
+  return hay;
+}
 function matches(p, toks){
   if (!toks.length) return true;
-  const hay = [p.title, p.content, p.tags.join(' '), p.memo, p.category].join('\n').toLowerCase();
+  const hay = hayOf(p);
   return toks.every(t => hay.includes(t));
 }
 function sorted(list, mode = state.sort){
@@ -1229,7 +1580,7 @@ function sorted(list, mode = state.sort){
 function filtered(){
   const toks = tokens();
   return sorted(items.filter(p =>
-    (state.cat === 'all' || (state.cat === 'fav' ? p.favorite : p.category === state.cat)) && matches(p, toks)
+    (state.cat === 'all' || (state.cat === 'fav' ? p.favorite : inCat(p, state.cat))) && matches(p, toks)
   ));
 }
 function highlight(text, toks){
@@ -1268,43 +1619,83 @@ function snippet(content, toks, len = 120){
 }
 
 /* ------------------------------------------------------------
-   Bible — 성경전서 개역한글판 (대한성서공회)
-   The text is NOT embedded in this file. Only the table of contents below is
-   (about 5 KB: each book's Korean name, file name and per-chapter verse counts).
-   That is enough to pick one verse out of all 31,102 and to know its reference,
-   so only the single book that verse belongs to is downloaded — a few tens of KB.
-   Each book is then kept in this browser (IndexedDB), so it is fetched once.
+   Bible — 오늘의 말씀
+   The text is NOT embedded in this file. Only the table of contents below
+   (each book's name and per-chapter verse counts) and a list of 389 chosen
+   passage references are. The book that today's passage belongs to is
+   downloaded once and kept in this browser (IndexedDB).
+
+   번역
+     · 현대어  : Open Korean Bible (개역한글을 오늘의 말로 옮긴 번역, 기완, CC BY 4.0)
+                 https://github.com/cameleonh/open-korean-bible
+                 아직 옮겨지지 않은 책(시편·잠언·이사야 등)이나 말투가 지나치게
+                 가벼운 곳은 자동으로 개역한글을 보여 줍니다.
+     · 개역한글 : 성경전서 개역한글판 (대한성서공회, 1961)
 
    ★ 말씀 파일 위치 ★  아래 순서대로 시도하고, 처음 성공한 곳을 기억합니다.
-     1) bible/<책이름>.txt   — index.html 과 같은 곳에 bible 폴더를 올린 경우 (권장)
-     2) jsDelivr CDN         — 아무것도 올리지 않아도 바로 동작하는 예비 경로
+     1) jsDelivr · Open Korean Bible  — 현대어 + 개역한글이 함께 들어 있음
+     2) bible/<책이름>.txt            — index.html 과 같은 곳에 bible 폴더를 올린 경우 (개역한글만)
+     3) jsDelivr · 개역한글            — 예비 경로 (개역한글만)
    ------------------------------------------------------------ */
-const BIBLE_SOURCES = [
-  { base: 'bible/', ext: 'txt' },
-  { base: 'https://cdn.jsdelivr.net/gh/bluesaurel/Korean-Bible-1961-KRV@2fdb91e77d323b99bacaa9b61fc18f318b703240/data/', ext: 'json' }
-];
+const OKB_BASE = 'https://cdn.jsdelivr.net/gh/cameleonh/open-korean-bible@72cde2ea062dc983c76594943d16af5bb7926314/data/json/';
+const KRV_BASE = 'https://cdn.jsdelivr.net/gh/bluesaurel/Korean-Bible-1961-KRV@2fdb91e77d323b99bacaa9b61fc18f318b703240/data/';
 const KEY_BIBLE_SRC = 'prayer.v1.bibleSource';
 /* [한글 책이름, 파일 이름, [1장 절수, 2장 절수, …]] × 66권 */
 const BIBLE_INDEX = [["창세기","Genesis",[31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,23,57,38,34,34,28,34,31,22,33,26]],["출애굽기","Exodus",[22,25,22,31,23,30,25,32,35,29,10,51,22,31,27,36,16,27,25,26,36,31,33,18,40,37,21,43,46,38,18,35,23,35,35,38,29,31,43,38]],["레위기","Leviticus",[17,16,17,35,19,30,38,36,24,20,47,8,59,57,33,34,16,30,37,27,24,33,44,23,55,46,34]],["민수기","Numbers",[54,34,51,49,31,27,89,26,23,36,35,16,33,45,41,50,13,32,22,29,35,41,30,25,18,65,23,31,40,16,54,42,56,29,34,13]],["신명기","Deuteronomy",[46,37,29,49,33,25,26,20,29,22,32,32,18,29,23,22,20,22,21,20,23,30,25,22,19,19,26,68,29,20,30,52,29,12]],["여호수아","Joshua",[18,24,17,24,15,27,26,35,27,43,23,24,33,15,63,10,18,28,51,9,45,34,16,33]],["사사기","Judges",[36,23,31,24,31,40,25,35,57,18,40,15,25,20,20,31,13,31,30,48,25]],["룻기","Ruth",[22,23,18,22]],["사무엘상","1Samuel",[28,36,21,22,12,21,17,22,27,27,15,25,23,52,35,23,58,30,24,42,15,23,29,22,44,25,12,25,11,30,13]],["사무엘하","2Samuel",[27,32,39,12,25,23,29,18,13,19,27,31,39,33,37,23,29,33,43,26,22,51,39,25]],["열왕기상","1Kings",[53,46,28,34,18,38,51,66,28,29,43,33,34,31,34,34,24,46,21,43,29,53]],["열왕기하","2Kings",[18,25,27,44,27,33,20,29,37,36,21,21,25,29,38,20,41,37,37,21,26,20,37,20,30]],["역대상","1Chronicles",[54,55,24,43,26,81,40,40,44,14,47,40,14,17,29,43,27,17,19,8,30,19,32,31,31,32,34,21,30]],["역대하","2Chronicles",[17,18,17,22,14,42,22,18,31,19,23,16,22,15,19,14,19,34,11,37,20,12,21,27,28,23,9,27,36,27,21,33,25,33,27,23]],["에스라","Ezra",[11,70,13,24,17,22,28,36,15,44]],["느헤미야","Nehemiah",[11,20,32,23,19,19,73,18,38,39,36,47,31]],["에스더","Esther",[22,23,15,17,14,14,10,17,32,3]],["욥기","Job",[22,13,26,21,27,30,21,22,35,22,20,25,28,22,35,22,16,21,29,29,34,30,17,25,6,14,23,28,25,31,40,22,33,37,16,33,24,41,30,24,34,17]],["시편","Psalms",[6,12,8,8,12,10,17,9,20,18,7,8,6,7,5,11,15,50,14,9,13,31,6,10,22,12,14,9,11,12,24,11,22,22,28,12,40,22,13,17,13,11,5,26,17,11,9,14,20,23,19,9,6,7,23,13,11,11,17,12,8,12,11,10,13,20,7,35,36,5,24,20,28,23,10,12,20,72,13,19,16,8,18,12,13,17,7,18,52,17,16,15,5,23,11,13,12,9,9,5,8,28,22,35,45,48,43,13,31,7,10,10,9,8,18,19,2,29,176,7,8,9,4,8,5,6,5,6,8,8,3,18,3,3,21,26,9,8,24,13,10,7,12,15,21,10,20,14,9,6]],["잠언","Proverbs",[33,22,35,27,23,35,27,36,18,32,31,28,25,35,33,33,28,24,29,30,31,29,35,34,28,28,27,28,27,33,31]],["전도서","Ecclesiastes",[18,26,22,16,20,12,29,17,18,20,10,14]],["아가","SongofSolomon",[17,17,11,16,16,14,13,14]],["이사야","Isaiah",[31,22,26,6,30,13,25,22,21,34,16,6,22,32,9,14,14,7,25,6,17,25,18,23,12,21,13,29,24,33,9,20,24,17,10,22,38,22,8,31,29,25,28,28,25,13,15,22,26,11,23,15,12,17,13,12,21,14,21,22,11,12,19,12,25,24]],["예레미야","Jeremiah",[19,37,25,31,31,30,34,22,26,25,23,17,27,22,21,21,27,23,15,18,14,30,40,10,38,24,22,17,32,24,40,44,26,22,19,32,21,28,18,16,18,22,13,30,5,28,7,47,39,46,64,34]],["예레미야애가","Lamentations",[22,22,66,22,22]],["에스겔","Ezekiel",[28,10,27,17,17,14,27,18,11,22,25,28,23,23,8,63,24,32,14,49,32,31,49,27,17,21,36,26,21,26,18,32,33,31,15,38,28,23,29,49,26,20,27,31,25,24,23,35]],["다니엘","Daniel",[21,49,30,37,31,28,28,27,27,21,45,13]],["호세아","Hosea",[11,23,5,19,15,11,16,14,17,15,12,14,16,9]],["요엘","Joel",[20,32,21]],["아모스","Amos",[15,16,15,13,27,14,17,14,15]],["오바댜","Obadiah",[21]],["요나","Jonah",[17,10,10,11]],["미가","Micah",[16,13,12,13,15,16,20]],["나훔","Nahum",[15,13,19]],["하박국","Habakkuk",[17,20,19]],["스바냐","Zephaniah",[18,15,20]],["학개","Haggai",[15,23]],["스가랴","Zechariah",[21,13,10,14,11,15,14,23,17,12,17,14,9,21]],["말라기","Malachi",[14,17,18,6]],["마태복음","Matthew",[25,23,17,25,48,34,29,34,38,42,30,50,58,36,39,28,27,35,30,34,46,46,39,51,46,75,66,20]],["마가복음","Mark",[45,28,35,41,43,56,37,38,50,52,33,44,37,72,47,20]],["누가복음","Luke",[80,52,38,44,39,49,50,56,62,42,54,59,35,35,32,31,37,43,48,47,38,71,56,53]],["요한복음","John",[51,25,36,54,47,71,53,59,41,42,57,50,38,31,27,33,26,40,42,31,25]],["사도행전","Acts",[26,47,26,37,42,15,60,40,43,48,30,25,52,28,41,40,34,28,41,38,40,30,35,27,27,32,44,31]],["로마서","Romans",[32,29,31,25,21,23,25,39,33,21,36,21,14,23,33,27]],["고린도전서","1Corinthians",[31,16,23,21,13,20,40,13,27,33,34,31,13,40,58,24]],["고린도후서","2Corinthians",[24,17,18,18,21,18,16,24,15,18,33,21,13]],["갈라디아서","Galatians",[24,21,29,31,26,18]],["에베소서","Ephesians",[23,22,21,32,33,24]],["빌립보서","Philippians",[30,30,21,23]],["골로새서","Colossians",[29,23,25,18]],["데살로니가전서","1Thessalonians",[10,20,13,18,28]],["데살로니가후서","2Thessalonians",[12,17,18]],["디모데전서","1Timothy",[20,15,16,16,25,21]],["디모데후서","2Timothy",[18,26,17,22]],["디도서","Titus",[16,15,15]],["빌레몬서","Philemon",[25]],["히브리서","Hebrews",[14,18,19,16,14,20,28,13,28,39,40,29,25]],["야고보서","James",[27,26,18,17,20]],["베드로전서","1Peter",[25,25,22,19,14]],["베드로후서","2Peter",[21,22,18]],["요한일서","1John",[10,29,24,21,21]],["요한이서","2John",[13]],["요한삼서","3John",[15]],["유다서","Jude",[25]],["요한계시록","Revelation",[20,29,22,11,14,17,17,13,21,11,19,17,18,20,8,21,18,24,21,15,27,21]]];
 const BIBLE_TOTAL = BIBLE_INDEX.reduce((n, b) => n + b[2].reduce((m, c) => m + c, 0), 0);
+const BOOK_NO = new Map(BIBLE_INDEX.map((b, i) => [b[0], i]));
 
-/* Verse number (0-based, canonical order) → which book/chapter/verse it is. No text needed. */
+const BIBLE_SOURCES = [
+  { id:'okb',   label:'jsDelivr · Open Korean Bible', kind:'okb',
+    url: loc => OKB_BASE + encodeURIComponent(String(loc.bi + 1).padStart(2, '0') + '_' + loc.book) + '.json' },
+  { id:'local', label:'이 사이트의 bible 폴더', kind:'txt', url: loc => 'bible/' + loc.key + '.txt' },
+  { id:'krv',   label:'jsDelivr · 개역한글', kind:'krv', url: loc => KRV_BASE + loc.key + '.json' }
+];
+
+/* A passage: one or a few consecutive verses in one chapter. */
+function passage(bi, chapter, v1, v2){
+  const [book, key, counts] = BIBLE_INDEX[bi];
+  return { bi, book, key, counts, chapter, v1, v2, ref: `${book} ${chapter}:${v1}${v2 > v1 ? '-' + v2 : ''}` };
+}
+function parseRef(s){
+  const m = /^(.+) (\d+):(\d+)(?:-(\d+))?$/.exec(String(s).trim());
+  if (!m || !BOOK_NO.has(m[1])) return null;
+  const bi = BOOK_NO.get(m[1]), counts = BIBLE_INDEX[bi][2];
+  const c = +m[2], v1 = +m[3], v2 = +(m[4] || m[3]);
+  if (c < 1 || c > counts.length || v1 < 1 || v2 < v1 || v2 > counts[c - 1]) return null;
+  return passage(bi, c, v1, v2);
+}
+/* 엄선한 말씀: 위로·찬양·믿음·소망·사랑·기도·평안·감사 — 문장이 끝나는 곳까지 고른 389곳 */
+const VERSE_POOL = '창세기 1:1;창세기 1:31;창세기 12:2;창세기 28:15;창세기 50:20;출애굽기 14:14;출애굽기 15:2;출애굽기 33:14;민수기 6:24-26;민수기 23:19;신명기 6:4-5;신명기 31:6;신명기 31:8;신명기 33:27;여호수아 1:9;여호수아 24:15;룻기 1:16;사무엘상 2:2;사무엘상 12:24;사무엘상 16:7;사무엘하 22:2-3;사무엘하 22:31;열왕기상 8:23;역대상 16:11;역대상 16:34;역대상 29:11;역대하 7:14;느헤미야 8:10;느헤미야 9:6;욥기 1:21;욥기 19:25;욥기 23:10;욥기 42:2;시편 1:1-2;시편 1:3;시편 3:3;시편 4:8;시편 5:3;시편 5:11;시편 8:1;시편 8:3-4;시편 9:1-2;시편 9:9-10;시편 16:8;시편 16:11;시편 18:1-2;시편 18:28;시편 19:1;시편 19:14;시편 23:1-3;시편 23:4;시편 23:6;시편 25:4-5;시편 27:1;시편 27:4;시편 27:14;시편 28:7;시편 29:11;시편 30:5;시편 31:24;시편 32:8;시편 33:20-21;시편 34:1;시편 34:4;시편 34:8;시편 34:18;시편 37:4-6;시편 37:7;시편 37:23-24;시편 40:1-2;시편 42:1-2;시편 42:11;시편 46:1;시편 46:10;시편 51:10;시편 51:17;시편 55:22;시편 56:3-4;시편 57:10;시편 61:2;시편 62:1-2;시편 62:8;시편 63:1;시편 63:3-4;시편 66:20;시편 68:19;시편 73:26;시편 84:10;시편 84:11;시편 86:5;시편 86:11;시편 90:12;시편 90:17;시편 91:1-2;시편 91:11;시편 94:19;시편 95:1-2;시편 96:1-2;시편 100:4-5;시편 103:1-2;시편 103:8;시편 103:11-13;시편 107:1;시편 107:9;시편 111:10;시편 116:1-2;시편 118:24;시편 119:18;시편 119:71;시편 119:105;시편 121:1-2;시편 121:7-8;시편 126:5-6;시편 127:1;시편 130:5;시편 131:2;시편 136:1;시편 138:8;시편 139:1-4;시편 139:13-14;시편 139:23-24;시편 143:8;시편 145:8-9;시편 145:18;시편 147:3;시편 150:6;잠언 3:5-6;잠언 3:9-10;잠언 4:23;잠언 8:17;잠언 9:10;잠언 15:1;잠언 16:3;잠언 16:9;잠언 17:22;잠언 18:10;잠언 19:21;잠언 22:6;잠언 27:1;잠언 30:5;전도서 3:1;전도서 3:11;전도서 4:9-10;전도서 12:1;전도서 12:13;아가 8:7;이사야 9:6;이사야 12:2;이사야 25:1;이사야 26:3;이사야 30:18;이사야 40:8;이사야 40:28-29;이사야 40:31;이사야 41:10;이사야 41:13;이사야 43:1;이사야 43:2;이사야 43:18-19;이사야 44:22;이사야 46:4;이사야 49:15;이사야 53:5;이사야 54:10;이사야 55:6-7;이사야 55:8-9;이사야 55:11;이사야 58:11;이사야 60:1;이사야 64:8;예레미야 17:7-8;예레미야 29:11;예레미야 29:12-13;예레미야 31:3;예레미야 32:17;예레미야 33:3;예레미야애가 3:22-23;예레미야애가 3:25-26;에스겔 36:26-27;다니엘 2:20-21;다니엘 12:3;호세아 6:3;호세아 14:9;요엘 2:13;아모스 5:24;요나 2:9;미가 6:8;미가 7:7;미가 7:18;나훔 1:7;하박국 2:4;하박국 3:17-18;하박국 3:19;스바냐 3:17;학개 2:4;스가랴 4:6;말라기 3:10;말라기 4:2;마태복음 4:4;마태복음 5:3-4;마태복음 5:5-6;마태복음 5:7-8;마태복음 5:9;마태복음 5:14-16;마태복음 5:44;마태복음 6:6;마태복음 6:9-10;마태복음 6:11-13;마태복음 6:25-26;마태복음 6:33;마태복음 6:34;마태복음 7:7-8;마태복음 7:12;마태복음 7:24;마태복음 9:37-38;마태복음 10:29-31;마태복음 11:28-30;마태복음 16:24;마태복음 17:20;마태복음 18:20;마태복음 19:26;마태복음 22:37-39;마태복음 24:35;마태복음 28:19-20;마가복음 1:35;마가복음 9:23;마가복음 10:45;마가복음 11:24;마가복음 12:30-31;누가복음 1:37;누가복음 1:46-48;누가복음 2:10-11;누가복음 2:14;누가복음 6:31;누가복음 6:36-37;누가복음 6:38;누가복음 9:23;누가복음 11:9-10;누가복음 12:34;누가복음 15:7;누가복음 18:27;누가복음 19:10;요한복음 1:1;요한복음 1:12;요한복음 1:14;요한복음 3:16;요한복음 3:30;요한복음 4:24;요한복음 6:35;요한복음 8:12;요한복음 8:32;요한복음 10:10;요한복음 10:27-28;요한복음 11:25-26;요한복음 13:34-35;요한복음 14:1;요한복음 14:6;요한복음 14:27;요한복음 15:5;요한복음 15:7;요한복음 15:12-13;요한복음 16:24;요한복음 16:33;요한복음 20:29;사도행전 1:8;사도행전 2:42;사도행전 4:12;사도행전 16:31;사도행전 20:35;로마서 1:16;로마서 3:23-24;로마서 5:1;로마서 5:3-4;로마서 5:5;로마서 5:8;로마서 6:23;로마서 8:1;로마서 8:18;로마서 8:26;로마서 8:28;로마서 8:31;로마서 8:37-39;로마서 10:9-10;로마서 10:17;로마서 11:36;로마서 12:1;로마서 12:2;로마서 12:12-13;로마서 12:15;로마서 12:21;로마서 13:10;로마서 14:8;로마서 15:13;고린도전서 1:18;고린도전서 2:9;고린도전서 3:16;고린도전서 10:13;고린도전서 10:31;고린도전서 13:4-7;고린도전서 13:13;고린도전서 15:57;고린도전서 15:58;고린도전서 16:14;고린도후서 4:7;고린도후서 4:16;고린도후서 4:17-18;고린도후서 5:7;고린도후서 5:17;고린도후서 9:8;고린도후서 12:9;고린도후서 12:10;갈라디아서 2:20;갈라디아서 5:1;갈라디아서 5:22-23;갈라디아서 6:2;갈라디아서 6:9;에베소서 2:8-9;에베소서 2:10;에베소서 3:20-21;에베소서 4:2-3;에베소서 4:32;에베소서 5:15-16;빌립보서 1:6;빌립보서 1:21;빌립보서 2:3-4;빌립보서 2:13;빌립보서 3:13-14;빌립보서 4:4;빌립보서 4:6-7;빌립보서 4:8;빌립보서 4:11;빌립보서 4:13;빌립보서 4:19;골로새서 1:16-17;골로새서 2:6-7;골로새서 3:2;골로새서 3:12-14;골로새서 3:15;골로새서 3:17;골로새서 3:23;골로새서 4:2;데살로니가전서 5:16-18;데살로니가전서 5:24;데살로니가후서 3:3;데살로니가후서 3:16;디모데전서 6:6;디모데후서 1:7;디모데후서 3:16-17;디모데후서 4:7-8;디도서 3:5;히브리서 4:12;히브리서 4:15-16;히브리서 10:24-25;히브리서 11:1;히브리서 11:6;히브리서 12:1-2;히브리서 12:11;히브리서 13:5;히브리서 13:8;히브리서 13:15;야고보서 1:2-4;야고보서 1:5;야고보서 1:12;야고보서 1:17;야고보서 1:19;야고보서 4:8;야고보서 4:10;야고보서 5:16;베드로전서 1:3-4;베드로전서 2:9;베드로전서 4:8;베드로전서 5:6-7;베드로전서 5:10;베드로후서 3:9;베드로후서 3:18;요한일서 1:9;요한일서 3:1;요한일서 3:18;요한일서 4:7-8;요한일서 4:10;요한일서 4:16;요한일서 4:18;요한일서 4:19;요한일서 5:14;유다서 1:24-25;요한계시록 3:20;요한계시록 21:4;요한계시록 21:5;요한계시록 22:13'.split(';').map(parseRef).filter(Boolean);
+
+/* Verse number (0-based, canonical order) → single-verse passage. No text needed. */
 function verseLocation(n){
   let left = ((n % BIBLE_TOTAL) + BIBLE_TOTAL) % BIBLE_TOTAL;
-  for (const [ko, key, counts] of BIBLE_INDEX) {
+  for (let bi = 0; bi < BIBLE_INDEX.length; bi++) {
+    const counts = BIBLE_INDEX[bi][2];
     for (let c = 0; c < counts.length; c++) {
-      if (left < counts[c]) return { book: ko, key, chapter: c + 1, verse: left + 1, counts, ref: `${ko} ${c + 1}:${left + 1}` };
+      if (left < counts[c]) return passage(bi, c + 1, left + 1, left + 1);
       left -= counts[c];
     }
   }
   return null;
 }
-/* Today in Korea (KST, UTC+9): the day runs 00:00–24:00 Korean time on every device. */
-function kstDayStr(d = new Date()){
-  const k = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
-      return `${k.getFullYear()}-${pad(k.getMonth() + 1)}-${pad(k.getDate())}T${pad(k.getHours())}`;
+function flatIndex(loc, verse){
+  let n = verse - 1;
+  for (let c = 0; c < loc.chapter - 1; c++) n += loc.counts[c];
+  return n;
 }
-/* Avalanche hash so consecutive days land far apart in the Bible. */
+/* Korean time (KST, UTC+9) on every device. */
+function kstNow(d = new Date()){
+  const k = new Date(d.getTime() + (9 * 60 + d.getTimezoneOffset()) * 60000);
+  return { date: `${k.getFullYear()}-${pad(k.getMonth() + 1)}-${pad(k.getDate())}`, hour: k.getHours() };
+}
+/* The verse changes at 00:00 KST (day) or at every hour (hour) — see 설정 → 오늘의 말씀. */
+function cycleKey(){
+  const k = kstNow();
+  return settings.verseCycle === 'day' ? k.date : `${k.date}T${pad(k.hour)}`;
+}
+/* Avalanche hash so consecutive days land far apart. */
 function hashStr(str){
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
@@ -1312,9 +1703,14 @@ function hashStr(str){
   h ^= h >>> 13; h = Math.imul(h, 3266489909) >>> 0;
   return (h ^= h >>> 16) >>> 0;
 }
+function pickPassage(key, offset){
+  const h = hashStr('prayer-verse-' + key + (offset ? ':' + offset : ''));
+  return settings.versePool === 'all' || !VERSE_POOL.length ? verseLocation(h % BIBLE_TOTAL) : VERSE_POOL[h % VERSE_POOL.length];
+}
 
-/* Downloaded books, kept in this browser so each is fetched only once. */
+/* Downloaded books ({ orig:[…], modern:[…]|null }), kept in this browser. */
 const bookMem = new Map();
+const modernTried = new Set();
 const bookStore = {
   db: null, broken: false,
   open(){
@@ -1332,27 +1728,31 @@ const bookStore = {
   async get(key){
     const db = await this.open();
     if (!db) return null;
-    return new Promise(res => {
+    const read = k => new Promise(res => {
       try {
-        const rq = db.transaction('books').objectStore('books').get(key);
-        rq.onsuccess = () => res(rq.result ? rq.result.verses : null);
+        const rq = db.transaction('books').objectStore('books').get(k);
+        rq.onsuccess = () => res(rq.result || null);
         rq.onerror = () => res(null);
       } catch (e) { res(null); }
     });
+    const v2 = await read('v2:' + key);
+    if (v2 && Array.isArray(v2.orig)) return { orig: v2.orig, modern: Array.isArray(v2.modern) ? v2.modern : null };
+    const v1 = await read(key);          // books saved by the previous version (개역한글 only)
+    return v1 && Array.isArray(v1.verses) ? { orig: v1.verses, modern: null } : null;
   },
-  async put(key, verses){
+  async put(key, rec){
     const db = await this.open();
     if (!db) return;
     await new Promise(res => {
       try {
         const tx = db.transaction('books', 'readwrite');
-        tx.objectStore('books').put({ key, verses, at: Date.now() });
+        tx.objectStore('books').put({ key: 'v2:' + key, orig: rec.orig, modern: rec.modern, at: Date.now() });
         tx.oncomplete = tx.onerror = tx.onabort = () => res();
       } catch (e) { res(); }
     });
   },
   async clear(){
-    bookMem.clear();
+    bookMem.clear(); modernTried.clear();
     const db = await this.open();
     if (!db) return;
     await new Promise(res => {
@@ -1367,78 +1767,145 @@ const bookStore = {
 
 async function fetchText(url){
   const ctl = typeof AbortController === 'function' ? new AbortController() : null;
-  const t = ctl ? setTimeout(() => ctl.abort(), 15000) : null;
+  const t = ctl ? setTimeout(() => ctl.abort(), 20000) : null;
   try {
-    // 'default', not 'force-cache': a cached 404 from a misconfigured moment must not
-    // stick around and make the retry button useless. Books are cached in IndexedDB anyway.
+    // 'default', not 'force-cache': a cached 404 must not make the retry button useless.
     const res = await fetch(url, { cache:'default', signal: ctl ? ctl.signal : undefined });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return await res.text();
   } finally { if (t) clearTimeout(t); }
 }
-/* Both shapes are accepted: one verse per line (.txt), or the upstream book JSON. */
-function parseBook(body, ext){
-  if (ext === 'json') {
-    const data = JSON.parse(body);
-    const chapters = (data && data.chapters) || [];
-    const out = [];
-    chapters.slice().sort((a, b) => a.chapter - b.chapter).forEach(c => {
-      c.verses.slice().sort((a, b) => a.verse - b.verse).forEach(v => out.push(String(v.text).split(/\s+/).join(' ').trim()));
+function parseBook(body, kind){
+  if (kind === 'txt') return { orig: body.replace(/\r/g, '').replace(/\n+$/, '').split('\n'), modern: null };
+  const data = JSON.parse(body);
+  const orig = [], modern = [];
+  ((data && data.chapters) || []).slice().sort((a, b) => a.chapter - b.chapter).forEach(c => {
+    c.verses.slice().sort((a, b) => a.verse - b.verse).forEach(v => {
+      if (kind === 'okb') { orig.push(String(v.original || '').trim()); modern.push(String(v.modern || '').trim()); }
+      else orig.push(String(v.text || '').split(/\s+/).join(' ').trim());
     });
-    return out;
-  }
-  return body.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
+  });
+  return { orig, modern: kind === 'okb' ? modern : null };
 }
 /* Fetched data must match the table of contents, or the source is rejected. */
-function bookValid(verses, counts){
+function bookValid(rec, counts){
   const want = counts.reduce((a, b) => a + b, 0);
-  return Array.isArray(verses) && verses.length === want && verses.every(v => typeof v === 'string' && v.length > 0);
+  return !!rec && Array.isArray(rec.orig) && rec.orig.length === want && rec.orig.every(v => typeof v === 'string' && v.length > 0)
+    && (!rec.modern || rec.modern.length === want);
 }
-async function loadBook(loc){
-  if (bookMem.has(loc.key)) return bookMem.get(loc.key);
-  const cached = await bookStore.get(loc.key);
-  if (cached && bookValid(cached, loc.counts)) { bookMem.set(loc.key, cached); return cached; }
-
+async function loadBook(loc, needModern){
+  const mem = bookMem.get(loc.key);
+  if (mem && (!needModern || mem.modern || modernTried.has(loc.key))) return mem;
+  let cached = mem || await bookStore.get(loc.key);
+  if (cached && !bookValid(cached, loc.counts)) cached = null;
+  if (cached) {
+    bookMem.set(loc.key, cached);
+    if (!needModern || cached.modern || modernTried.has(loc.key)) return cached;
+  }
   const saved = store.get(KEY_BIBLE_SRC, null);
-  const order = BIBLE_SOURCES.slice().sort((a, b) => (b.base === saved ? 1 : 0) - (a.base === saved ? 1 : 0));
+  let order = BIBLE_SOURCES.slice();
+  if (!needModern && saved) order.sort((a, b) => (b.id === saved) - (a.id === saved));
+  if (cached) order = order.filter(s => s.kind === 'okb');   // only the modern text is missing
   let lastErr = null;
   for (const src of order) {
     try {
-      const verses = parseBook(await fetchText(src.base + loc.key + '.' + src.ext), src.ext);
-      if (!bookValid(verses, loc.counts)) { lastErr = new Error('본문 형식이 표준과 다릅니다'); continue; }
-      bookMem.set(loc.key, verses);
-      store.set(KEY_BIBLE_SRC, src.base);
-      bookStore.put(loc.key, verses);
-      return verses;
+      const got = parseBook(await fetchText(src.url(loc)), src.kind);
+      if (!bookValid(got, loc.counts)) { lastErr = new Error('본문 형식이 표준과 다릅니다'); continue; }
+      const rec = { orig: got.orig, modern: got.modern || (cached && cached.modern) || null };
+      bookMem.set(loc.key, rec);
+      store.set(KEY_BIBLE_SRC, src.id);
+      bookStore.put(loc.key, rec);
+      return rec;
     } catch (e) { lastErr = e; }
   }
+  if (cached) { modernTried.add(loc.key); return cached; }   // show 개역한글 rather than nothing
   throw lastErr || new Error('말씀 파일을 불러오지 못했습니다');
 }
 
+/* ---- text clean-up ---- */
+const KRV_END = /(다|라|요|까|냐|뇨|자|야|꼬|지어다|찌어다|소서|아멘|할렐루야|\(셀라\))\s*$/;
+function cleanVerse(t){
+  t = String(t || '').replace(/\{\{([^{}]*)\}\}/g, '$1').replace(/\{\{|\}\}|\]\]/g, '').replace(/\s+/g, ' ').trim();
+  return t.replace(/^\[[^\]]{1,40}\]\s*/, '');                          // Psalm headings such as [다윗의 시]
+}
+function finishPassage(t){
+  t = t.replace(/\s+(?:하고|하시고|하매|하니|하더라|하시더라)\s*$/, '');  // trailing "…하고" narrative tags
+  const pairs = [['"', '"'], ["'", "'"], ['“', '”'], ['‘', '’']];
+  for (const [o, c] of pairs) {                                         // drop a quote mark left open
+    const no = t.split(o).length - 1, nc = o === c ? 0 : t.split(c).length - 1;
+    const odd = o === c ? no % 2 === 1 : no !== nc;
+    if (!odd) continue;
+    if (t.startsWith(o)) t = t.slice(o.length).trim();
+    else if (t.endsWith(c)) t = t.slice(0, -c.length).trim();
+    else { const i = t.lastIndexOf(c); if (i >= 0) t = (t.slice(0, i) + t.slice(i + c.length)).replace(/\s+/g, ' ').trim(); }
+  }
+  return t;
+}
+/* Parts of the modern translation are in very casual speech (반말: "…해.", "…거야.").
+   For a prayer app those read oddly, so such passages fall back to 개역한글. */
+const SENT_END_RE = /(\S+?)[.!?]+['"’”]*(?=\s|$)/g;
+const CASUAL_RE = /(해|야|어|거든|지|마|져|아|워|줘|래|게|네|걸|니|나|까|거야|잖아)$/;
+const POLITE_RE = /(습니까|읍니까|니이까|나이까|합니까|입니까|옵니까|습니다|니다|십시오|세요|하라|니라|리라|도다|로다|이다|구나|느냐|냐|자)$/;
+function modernOk(t){
+  SENT_END_RE.lastIndex = 0;
+  let m;
+  while ((m = SENT_END_RE.exec(t))) { if (CASUAL_RE.test(m[1]) && !POLITE_RE.test(m[1])) return false; }
+  return true;
+}
+/* Whole-Bible mode: widen a single verse to the sentence it belongs to (at most 4 verses). */
+function widenPassage(loc, orig){
+  let { v1, v2 } = loc;
+  const at = v => cleanVerse(orig[flatIndex(loc, v)]);
+  const max = loc.counts[loc.chapter - 1];
+  for (let k = 0; k < 2 && v1 > 1 && !KRV_END.test(at(v1 - 1)); k++) v1--;
+  while (v2 < max && v2 - v1 < 3 && !KRV_END.test(at(v2))) v2++;
+  return passage(loc.bi, loc.chapter, v1, v2);
+}
+function passageText(book, loc){
+  const idx = [];
+  for (let v = loc.v1; v <= loc.v2; v++) idx.push(flatIndex(loc, v));
+  const orig = finishPassage(idx.map(i => cleanVerse(book.orig[i])).join(' '));
+  let modern = null;
+  if (book.modern) {
+    const ms = idx.map(i => cleanVerse(book.modern[i]));
+    const translated = ms.every((m, k) => m && m !== cleanVerse(book.orig[idx[k]]));
+    if (translated) {
+      const t = finishPassage(ms.join(' '));
+      if (t && modernOk(t)) modern = t;
+    }
+  }
+  return { orig, modern };
+}
+
 /* Verse of the day: state for the hero card. */
-const verseState = { phase:'idle', day:'', loc:null, text:'', error:'' };
-function verseIndexFor(day){ return hashStr('prayer-verse-' + day) % BIBLE_TOTAL; }
+const verseState = { phase:'idle', key:'', offset:0, loc:null, text:null, error:'' };
+function verseShown(){
+  const t = verseState.text;
+  if (!t) return null;
+  const useModern = settings.verseTr !== 'krv' && !!t.modern;
+  return { main: useModern ? t.modern : t.orig, modern: useModern, alt: settings.verseTr === 'both' && useModern ? t.orig : '' };
+}
 function dailyVerse(){
-  return verseState.phase === 'ready'
-    ? { ref: verseState.loc.ref, text: verseState.text, book: verseState.loc.book, chapter: verseState.loc.chapter, verse: verseState.loc.verse }
-    : null;
+  const s = verseShown();
+  return verseState.phase === 'ready' && s ? { ref: verseState.loc.ref, text: s.main } : null;
 }
 let verseRun = 0;
 async function loadDailyVerse({ force = false } = {}){
-  const day = kstDayStr();
-  if (!force && verseState.day === day && (verseState.phase === 'ready' || verseState.phase === 'loading')) return;
+  const key = cycleKey();
+  if (!force && verseState.key === key && (verseState.phase === 'ready' || verseState.phase === 'loading')) return;
+  if (verseState.key !== key) verseState.offset = 0;
   const run = ++verseRun;
-  verseState.day = day;
-  verseState.loc = verseLocation(verseIndexFor(day));
+  verseState.key = key;
+  verseState.loc = pickPassage(key, verseState.offset);
   verseState.phase = 'loading';
   verseState.error = '';
   renderHeroIfHome();
+  renderVerseInfo();
   try {
-    const verses = await loadBook(verseState.loc);
+    const book = await loadBook(verseState.loc, settings.verseTr !== 'krv');
     if (run !== verseRun) return;
-    let n = verseState.loc.verse - 1;
-    for (let c = 0; c < verseState.loc.chapter - 1; c++) n += verseState.loc.counts[c];
-    verseState.text = verses[n];
+    if (settings.versePool === 'all') verseState.loc = widenPassage(verseState.loc, book.orig);
+    verseState.text = passageText(book, verseState.loc);
     verseState.phase = 'ready';
   } catch (e) {
     if (run !== verseRun) return;
@@ -1450,23 +1917,23 @@ async function loadDailyVerse({ force = false } = {}){
   renderHeroIfHome();
   renderVerseInfo();
 }
+function nextVerse(){
+  verseState.offset++;
+  loadDailyVerse({ force:true });
+}
 function renderHeroIfHome(){ if (state.route && state.route.name === 'home') renderHero(); }
-/* Re-render when the Korean day rolls over while the app stays open. */
+/* Re-render when the Korean day/hour rolls over while the app stays open. */
 function watchDayChange(){
-  let day = kstDayStr();
-  setInterval(() => {
-    const now = kstDayStr();
-    if (now !== day) { day = now; loadDailyVerse(); }
-  }, 60000);
+  setInterval(() => { if (cycleKey() !== verseState.key) loadDailyVerse(); }, 60000);
 }
 
 /* ------------------------------------------------------------
    Home rendering
    ------------------------------------------------------------ */
-function renderHome(){
+function renderHome(opts){
   renderHero();
   renderChips();
-  renderList();
+  renderList(opts);
 }
 
 function renderHero(){
@@ -1476,11 +1943,13 @@ function renderHero(){
     el.addEventListener('animationend', () => el.classList.remove('intro'), { once:true });
     state.heroIntroDone = true;
   }
-  el.classList.add('hero-empty');
   const loc = verseState.loc;
+  const shown = verseState.phase === 'ready' ? verseShown() : null;
   let body;
-  if (verseState.phase === 'ready') {
-    body = `<p class="verse-body">${esc(verseState.text)}</p><div class="verse-ref">${esc(loc.ref)}</div>`;
+  if (shown) {
+    body = `<p class="verse-body">${esc(shown.main)}</p>
+      ${shown.alt ? `<p class="verse-alt">${esc(shown.alt)}</p>` : ''}
+      <div class="verse-ref">${esc(loc.ref)}</div>`;
   } else if (verseState.phase === 'error') {
     body = `<p class="hero-excerpt">${esc(verseState.error)}</p>
       <button class="btn" type="button" data-action="verse-retry" style="margin-top:20px">다시 시도</button>
@@ -1489,36 +1958,102 @@ function renderHero(){
     body = `<div aria-hidden="true"><div class="skel" style="width:94%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div></div>
       ${loc ? `<div class="verse-ref">${esc(loc.ref)}</div>` : ''}`;
   }
-  const canWrite = verseState.phase === 'ready';
+  const trLabel = shown ? (shown.modern ? '현대어' : '개역한글') : '';
+  const src = shown && shown.modern
+    ? 'Open Korean Bible<br>CC BY 4.0'
+    : '개역한글판<br>대한성서공회';
   el.innerHTML = `
-    <div class="hero-top"><span class="pill">오늘의 말씀</span>${CROSS_MARK}</div>
+    <div class="hero-top">
+      <span class="pill">오늘의 말씀${trLabel ? `<span class="hero-tr">· ${trLabel}</span>` : ''}</span>
+      <div class="hero-tools">
+        <button class="icon-btn" type="button" data-action="verse-next" aria-label="다른 말씀 보기" title="다른 말씀 보기">${icon('shuffle', 17)}</button>
+        ${shown ? `<button class="icon-btn" type="button" data-action="verse-copy" aria-label="말씀 복사" title="말씀 복사">${icon('copy', 17)}</button>` : ''}
+      </div>
+    </div>
+    <div class="hero-cross" aria-hidden="true">${CROSS_MARK}</div>
     <div class="hero-main">${body}</div>
     <div class="hero-bottom">
       <span>${esc(fmtDot(todayStr()))}</span>
-      ${canWrite ? `<button class="circle-btn" type="button" data-action="new" aria-label="이 말씀으로 기도문 쓰기">${icon('plus', 18)}</button>` : '<span></span>'}
-      <span class="verse-src">개역한글판<br>대한성서공회</span>
+      ${shown ? `<button class="circle-btn" type="button" data-action="new" data-seed="verse" aria-label="이 말씀으로 기도문 쓰기" title="이 말씀으로 기도문 쓰기">${icon('plus', 18)}</button>` : '<span></span>'}
+      <span class="verse-src">${src}</span>
     </div>`;
 }
 
 function renderChips(){
-  const counts = { all: items.length, fav: items.filter(p => p.favorite).length };
-  cats().forEach(c => { counts[c] = items.filter(p => p.category === c).length; });
+  const counts = { all: items.length, fav: 0 };
+  cats().forEach(c => { counts[c] = 0; });
+  for (const p of items) {                       // one pass, however many prayers
+    if (p.favorite) counts.fav++;
+    for (const c of catsOf(p)) if (c in counts) counts[c]++;
+  }
   const defs = [['all', '전체'], ['fav', '중요'], ...cats().map(c => [c, c])];
   $('#chips').innerHTML = defs.map(([k, l]) => `
     <button type="button" class="chip${counts[k] ? '' : ' is-zero'}" data-cat="${esc(k)}" aria-pressed="${state.cat === k}">
-      ${k === 'fav' ? icon('star', 14) : ''}<span>${esc(l)}</span><span class="n">${counts[k]}</span>
+      ${k === 'fav' ? icon('star', 14) : ''}<span>${esc(l)}</span><span class="n">${counts[k] || 0}</span>
     </button>`).join('');
 }
 
-function renderList(){
+/* The list is drawn in pages: the first LIST_PAGE cards at once, the rest as the
+   reader scrolls near the end. Hundreds of prayers no longer freeze a phone. */
+const LIST_PAGE = 30;
+const listState = { list: [], toks: [], shown: 0, sig: '' };
+let listObserver = null;
+
+function cardHtml(p, toks){
+  const href = '#/p/' + encodeURIComponent(p.id);
+  const cs = catsOf(p);
+  const pills = cs.slice(0, 2).map(c => `<span class="pill pill-sm">${esc(c)}</span>`).join('') +
+    (cs.length > 2 ? `<span class="more">+${cs.length - 2}</span>` : '');
+  return `
+    <article class="card">
+      <div class="card-top">
+        <div class="card-cats">${pills}</div>
+        <button type="button" class="star" data-fav="${esc(p.id)}" aria-pressed="${p.favorite}" aria-label="${p.favorite ? '중요 해제' : '중요로 표시'}">${icon('star', 20)}</button>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title"><a class="card-link" href="${href}" data-nav>${highlight(p.title, toks)}</a></h3>
+        <p class="card-excerpt">${highlight(snippet(p.content, toks), toks)}</p>
+      </div>
+      <div class="card-foot">
+        <span class="cat-line">${esc(cs.join(' · '))}</span>
+        <time datetime="${esc(p.date)}">${esc(dateLabel(p.date))}</time>
+        <span class="card-tags">${highlight(p.tags.map(t => '#' + t).join(' '), toks)}</span>
+      </div>
+    </article>`;
+}
+function appendCards(n = LIST_PAGE){
+  const { list, toks } = listState;
+  const from = listState.shown, to = Math.min(list.length, from + n);
+  if (to > from) {
+    $('#list').insertAdjacentHTML('beforeend', list.slice(from, to).map(p => cardHtml(p, toks)).join(''));
+    listState.shown = to;
+  }
+  updateMore();
+}
+function updateMore(){
+  const left = listState.list.length - listState.shown;
+  $('#listMore').hidden = left <= 0;
+  if (left > 0) $('#listMoreBtn').textContent = `기도문 더 보기 (${left.toLocaleString('ko-KR')}개 남음)`;
+}
+function watchListEnd(){
+  if (listObserver || typeof IntersectionObserver !== 'function') return;
+  listObserver = new IntersectionObserver(entries => {
+    if (entries.some(e => e.isIntersecting) && listState.shown < listState.list.length && state.route && state.route.name === 'home') appendCards();
+  }, { rootMargin: '900px 0px' });
+  listObserver.observe($('#listMore'));
+}
+
+function renderList({ keep = true, atLeast = 0 } = {}){
   const listEl = $('#list');
   const meta = $('#listMeta');
-  const list = filtered();
+  listEl.classList.toggle('compact', settings.listView === 'compact');
   const toks = tokens();
   const narrowed = !!toks.length || state.cat !== 'all';
   $('#btnClear').hidden = !state.q;
+  $('#listMore').hidden = true;
 
   if (cloud.phase !== 'ready') {
+    listState.list = []; listState.shown = 0;
     if (cloud.phase === 'locked') {
       meta.textContent = '';
       listEl.innerHTML = `
@@ -1550,18 +2085,21 @@ function renderList(){
     return;
   }
 
+  const list = filtered();
   if (!items.length) {
+    listState.list = []; listState.shown = 0;
     meta.textContent = '';
     listEl.innerHTML = `
       <div class="empty-state">
         ${icon('book', 34)}
         <h3>아직 기록한 기도문이 없습니다</h3>
-        <p>하루를 시작하거나 마무리하며 드린 기도를 적어 두세요. 저장한 기도문은 이 브라우저에 안전하게 남습니다.</p>
+        <p>하루를 시작하거나 마무리하며 드린 기도를 적어 두세요. 저장한 기도문은 모든 기기에서 함께 볼 수 있습니다.</p>
         <button class="btn btn-primary" type="button" data-action="new">${icon('plus', 18)}첫 기도문 쓰기</button>
       </div>`;
     return;
   }
   if (!list.length) {
+    listState.list = []; listState.shown = 0;
     const what = toks.length ? `‘${esc(state.q.trim())}’에 맞는 기도문이 없습니다` :
       (state.cat === 'fav' ? '중요 표시한 기도문이 없습니다' : `‘${esc(state.cat)}’ 카테고리에 기도문이 없습니다`);
     const hint = state.cat === 'fav' && !toks.length
@@ -1577,23 +2115,28 @@ function renderList(){
       </div>`;
     return;
   }
-  meta.textContent = narrowed ? `기도문 ${list.length}개를 찾았습니다` : `기도문 ${items.length}개`;
-  listEl.innerHTML = list.map(p => {
-    const href = '#/p/' + encodeURIComponent(p.id);
-    return `
-      <article class="card">
-        <div class="card-top">
-          <span class="pill pill-sm">${esc(p.category)}</span>
-          <button type="button" class="star" data-fav="${esc(p.id)}" aria-pressed="${p.favorite}" aria-label="${p.favorite ? '중요 해제' : '중요로 표시'}">${icon('star', 20)}</button>
-        </div>
-        <h3 class="card-title"><a class="card-link" href="${href}" data-nav>${highlight(p.title, toks)}</a></h3>
-        <p class="card-excerpt">${highlight(snippet(p.content, toks), toks)}</p>
-        <div class="card-foot">
-          <time datetime="${esc(p.date)}">${esc(dateLabel(p.date))}</time>
-          <span class="card-tags">${highlight(p.tags.map(t => '#' + t).join(' '), toks)}</span>
-        </div>
-      </article>`;
-  }).join('');
+  meta.textContent = narrowed ? `기도문 ${list.length.toLocaleString('ko-KR')}개를 찾았습니다` : `기도문 ${items.length.toLocaleString('ko-KR')}개`;
+  // Same filter as before (e.g. a star was toggled or another device saved): keep as many cards as were showing.
+  const sig = [state.q, state.cat, state.sort, settings.listView].join('\u0001');
+  const want = Math.max(LIST_PAGE, atLeast, keep && sig === listState.sig ? listState.shown : 0);
+  listState.sig = sig;
+  listState.list = list;
+  listState.toks = toks;
+  listState.shown = 0;
+  listEl.innerHTML = '';
+  appendCards(want);
+  watchListEnd();
+}
+/* A star toggled on the home list: update just that card and the counts. */
+function patchFav(id){
+  const p = findItem(id);
+  if (!p) return;
+  if (state.cat === 'fav') { renderChips(); renderList(); return; }
+  $$(`#list [data-fav="${CSS.escape(id)}"]`).forEach(b => {
+    b.setAttribute('aria-pressed', String(p.favorite));
+    b.setAttribute('aria-label', p.favorite ? '중요 해제' : '중요로 표시');
+  });
+  renderChips();
 }
 
 /* ------------------------------------------------------------
@@ -1611,20 +2154,26 @@ function renderRead(id){
     go('#/', { replace:true });
     return false;
   }
-  $('#rdCat').textContent = p.category;
+  $('#rdCats').innerHTML = catsOf(p).map(c => `<span class="pill">${esc(c)}</span>`).join('');
   const d = parseDate(p.date);
   $('#rdDate').textContent = d ? fmtLong(d) : p.date;
   $('#rdDate').setAttribute('datetime', p.date);
   $('#rdTitle').textContent = p.title;
-  $('#rdBody').textContent = p.content;
+  const bodyEl = $('#rdBody');
+  if (bodyEl.dataset.src !== p.content) {           // don't rebuild (and lose scroll anchor) for unchanged text
+    bodyEl.innerHTML = prayerHtml(p.content);
+    bodyEl.dataset.src = p.content;
+  }
 
   const tagsEl = $('#rdTags');
   tagsEl.innerHTML = p.tags.map(t => `<button type="button" class="tag-btn" data-tag="${esc(t)}" aria-label="${esc(t)} 태그로 검색">#${esc(t)}</button>`).join('');
-  tagsEl.hidden = !p.tags.length;
+  $('#rdTagsCard').hidden = !p.tags.length;
 
   $('#rdMemo').hidden = !p.memo;
   $('#rdMemoText').textContent = p.memo;
   $('#rdUpdated').textContent = '마지막 수정 ' + fmtStamp(p.updatedAt);
+  $('#rdFont').textContent = settings.readFont === 'serif' ? '고딕' : '바탕';
+  $('#rdFont').setAttribute('aria-label', settings.readFont === 'serif' ? '산세리프(고딕)로 바꾸기' : '세리프(바탕)로 바꾸기');
 
   const fav = $('#rdFav');
   fav.setAttribute('aria-pressed', String(p.favorite));
@@ -1639,6 +2188,15 @@ function renderRead(id){
   document.title = p.title + ' | Prayer';
   return true;
 }
+/* Blank lines become paragraph breaks (a small gap instead of a whole empty line);
+   single line breaks stay line breaks. */
+function prayerHtml(text){
+  return String(text).replace(/\r/g, '').split(/\n[ \t]*\n+/)
+    .map(par => par.replace(/^\n+|\n+$/g, ''))
+    .filter(par => par.trim())
+    .map(par => '<p>' + esc(par).replace(/\n/g, '<br>') + '</p>')
+    .join('');
+}
 function setNav(btn, target, label, emptyText){
   const isNext = btn.id === 'rdNext';
   btn.disabled = !target;
@@ -1652,13 +2210,12 @@ function setNav(btn, target, label, emptyText){
    ------------------------------------------------------------ */
 function formKey(){ return state.editId || 'new'; }
 function normForm(f){
-  return JSON.stringify([f.title.trim(), f.category, f.content.replace(/\s+$/, ''), f.date, f.tags.join('\u0001'), f.memo.trim()]);
+  return JSON.stringify([f.title.trim(), (f.categories || []).join('\u0001'), f.content.replace(/\s+$/, ''), f.date, f.tags.join('\u0001'), f.memo.trim()]);
 }
 function readForm(){
-  const checked = $('#fCats input:checked');
   return {
     title: $('#fTitle').value.trim(),
-    category: checked ? checked.value : '기타',
+    categories: state.formCats.slice(),
     content: $('#fContent').value.replace(/\s+$/, ''),
     date: $('#fDate').value,
     tags: state.tags.slice(),
@@ -1667,7 +2224,7 @@ function readForm(){
 }
 function fillForm(f){
   $('#fTitle').value = f.title;
-  setCatChoice(f.category);
+  setCatChoice(f.categories);
   $('#fContent').value = f.content;
   $('#fDate').value = f.date;
   state.tags = f.tags.slice();
@@ -1677,20 +2234,38 @@ function fillForm(f){
   updateCount();
   requestAnimationFrame(() => { autosize($('#fContent')); autosize($('#fMemo')); });
 }
+/* Several categories can be ticked (checkboxes). The order they were ticked in is kept:
+   the first one is the prayer's main category. Until the database has the
+   `categories` column (supabase-schema.sql 6번), only one can be chosen. */
 function renderCatOptions(){
+  const multi = cloud.multiCat !== false;
+  const type = multi ? 'checkbox' : 'radio';
   $('#fCats').innerHTML = cats().map(c =>
-    `<label class="cat-opt"><input type="radio" name="cat" value="${esc(c)}"><span>${esc(c)}</span></label>`
+    `<label class="cat-opt"><input type="${type}" name="cat" value="${esc(c)}"><span>${esc(c)}</span></label>`
   ).join('');
+  $('#catHint').textContent = multi ? '여러 개 선택할 수 있습니다' : '하나만 선택';
+  const note = $('#catNote');
+  note.hidden = multi;
+  note.classList.toggle('warn', !multi);
+  if (!multi) note.textContent = '여러 카테고리를 쓰려면 Supabase SQL Editor에서 새 supabase-schema.sql을 한 번 실행하세요.';
 }
 /* Prayers may carry a category that has since been deleted (e.g. in a draft) - fall back gracefully. */
-function setCatChoice(name){
-  const inputs = $$('#fCats input');
-  let hit = false;
-  inputs.forEach(i => { i.checked = i.value === name; if (i.checked) hit = true; });
-  if (!hit && inputs.length) {
-    const fb = fallbackCat(null);
-    inputs.forEach(i => { i.checked = i.value === fb; });
-  }
+function setCatChoice(list){
+  const names = (Array.isArray(list) ? list : [list]).filter(c => cats().includes(c));
+  const multi = cloud.multiCat !== false;
+  state.formCats = multi ? names : names.slice(0, 1);
+  if (!state.formCats.length && cats().length) state.formCats = [fallbackCat(null)];
+  syncCatInputs();
+}
+function syncCatInputs(){
+  $$('#fCats input').forEach(i => { i.checked = state.formCats.includes(i.value); });
+}
+function onCatInput(input){
+  const name = input.value;
+  if (input.type === 'radio') state.formCats = [name];
+  else if (input.checked) { if (!state.formCats.includes(name)) state.formCats.push(name); }
+  else state.formCats = state.formCats.filter(c => c !== name);
+  scheduleDraft();
 }
 function isDirty(){ return state.route && state.route.name === 'edit' && normForm(readForm()) !== state.editBase; }
 
@@ -1704,15 +2279,15 @@ function openEditor(id){
   state.editId = p ? p.id : null;
   renderCatOptions();
   $('#edHeading').textContent = p ? '기도문 수정' : '새 기도문';
-  $('#edDelete').hidden = !p;
+  $('#edDangerRow').hidden = !p;
   clearErrors();
 
   const seed = (!p && state.verseSeed) ? state.verseSeed : null;
   state.verseSeed = null;
   const base = p
-    ? { title:p.title, category:p.category, content:p.content, date:p.date, tags:p.tags.slice(), memo:p.memo }
+    ? { title:p.title, categories:catsOf(p).slice(), content:p.content, date:p.date, tags:p.tags.slice(), memo:p.memo }
     : { title: seed ? seed.ref : '',
-        category: cats().includes(state.cat) ? state.cat : (cats().includes('묵상') ? '묵상' : cats()[0]),
+        categories: [cats().includes(state.cat) ? state.cat : (cats().includes('묵상') ? '묵상' : cats()[0])],
         content: seed ? `${seed.text}
 (${seed.ref})
 
@@ -1723,7 +2298,9 @@ function openEditor(id){
   let data = base, restored = false;
   const dr = drafts[formKey()];
   if (dr && dr.data && (!p || dr.at > p.updatedAt)) {
-    const nd = Object.assign({}, base, dr.data, { tags: Array.isArray(dr.data.tags) ? dr.data.tags : base.tags });
+    const dcats = Array.isArray(dr.data.categories) ? dr.data.categories : (dr.data.category ? [dr.data.category] : base.categories);
+    const nd = Object.assign({}, base, dr.data, { tags: Array.isArray(dr.data.tags) ? dr.data.tags : base.tags, categories: dcats });
+    delete nd.category;
     if (normForm(nd) !== state.editBase) { data = nd; restored = true; }
   }
   fillForm(data);
@@ -1795,6 +2372,8 @@ async function saveEditor(){
     return;
   }
   if (!parseDate(f.date)) f.date = todayStr();
+  if (!f.categories.length) f.categories = [fallbackCat(null)];
+  if (cloud.multiCat === false) f.categories = f.categories.slice(0, 1);
   const title = f.title || deriveTitle(f.content);
   const now = Date.now();
   const btn = $('#edSave');
@@ -1805,13 +2384,13 @@ async function saveEditor(){
     if (state.editId) {
       const cur = findItem(state.editId);
       if (!cur) { toast('이 기도문은 이미 삭제되었습니다', 'info'); go('#/', { replace:true }); return; }
-      const next = normalize(Object.assign({}, cur, { title, category:f.category, content:f.content, date:f.date, tags:f.tags, memo:f.memo, updatedAt:now }));
+      const next = normalize(Object.assign({}, cur, { title, categories:f.categories, category:f.categories[0], content:f.content, date:f.date, tags:f.tags, memo:f.memo, updatedAt:now }));
       const saved = await cloudOp(() => api.updatePrayer(next));      // UPDATE public.prayers
       Object.assign(cur, saved);
       p = cur;
       msg = '기도문을 수정했습니다';
     } else {
-      const draft = normalize({ id: uid(), title, category:f.category, content:f.content, date:f.date, tags:f.tags, memo:f.memo, favorite:false, createdAt:now, updatedAt:now });
+      const draft = normalize({ id: uid(), title, categories:f.categories, content:f.content, date:f.date, tags:f.tags, memo:f.memo, favorite:false, createdAt:now, updatedAt:now });
       const saved = (await cloudOp(() => api.insertPrayers([draft])))[0];   // INSERT public.prayers
       p = upsertLocal(saved);
       msg = '기도문을 저장했습니다';
@@ -1866,7 +2445,7 @@ async function toggleFav(id){
   const redraw = () => {
     const r = state.route;
     if (!r) return;
-    if (r.name === 'home') { renderChips(); renderList(); }
+    if (r.name === 'home') patchFav(id);
     else if (r.name === 'read') renderRead(r.id);
   };
   p.favorite = next;            // optimistic: the star responds instantly
@@ -1904,10 +2483,7 @@ async function deletePrayer(id){
   else go('#/', { replace:true });
 }
 
-async function copyPrayer(id){
-  const p = findItem(id);
-  if (!p) return;
-  const text = `${p.title}\n\n${p.content}`;
+async function copyText(text){
   let ok = false;
   try {
     if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; }
@@ -1920,19 +2496,180 @@ async function copyPrayer(id){
     try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
     ta.remove();
   }
+  return ok;
+}
+async function copyPrayer(id){
+  const p = findItem(id);
+  if (!p) return;
+  const ok = await copyText(`${p.title}\n\n${p.content}`);
   toast(ok ? '기도문을 클립보드에 복사했습니다' : '복사하지 못했습니다. 본문을 길게 눌러 직접 선택하세요.', ok ? 'check' : 'info');
 }
+async function copyVerse(){
+  const v = dailyVerse();
+  if (!v) return;
+  const ok = await copyText(`${v.text}\n(${v.ref})`);
+  toast(ok ? '오늘의 말씀을 복사했습니다' : '복사하지 못했습니다', ok ? 'check' : 'info');
+}
 
+/* Reading look: font family, size and line spacing (설정 → 읽기) */
+function applyReadVars(){
+  const root = document.documentElement;
+  root.style.setProperty('--read-size', settings.readSize + 'rem');
+  root.style.setProperty('--read-lh', String(settings.lineHeight));
+  root.dataset.font = settings.readFont;
+}
+function setReadFont(v){
+  settings.readFont = v === 'sans' ? 'sans' : 'serif';
+  applyReadVars(); saveSettings(); syncRange();
+  if (state.route && state.route.name === 'read') renderRead(state.route.id);
+  autoScroll.recalc();
+}
+function setLineHeight(v){
+  settings.lineHeight = Math.round(Math.min(LH_MAX, Math.max(LH_MIN, v)) * 100) / 100;
+  applyReadVars(); saveSettings(); syncRange();
+  autoScroll.recalc();
+}
 function setReadSize(v){
   settings.readSize = Math.round(Math.min(SIZE_MAX, Math.max(SIZE_MIN, v)) * 100) / 100;
-  document.documentElement.style.setProperty('--read-size', settings.readSize + 'rem');
+  applyReadVars();
   saveSettings();
   updateSizeButtons();
   syncRange();
+  autoScroll.recalc();
 }
 function updateSizeButtons(){
   $('#rdSmaller').disabled = settings.readSize <= SIZE_MIN + 0.001;
   $('#rdLarger').disabled = settings.readSize >= SIZE_MAX - 0.001;
+}
+
+/* ------------------------------------------------------------
+   Auto-scroll (읽는 속도에 맞춰 천천히 내려가기)
+   Speed is set in characters per minute: the prayer body's height divided by
+   its character count gives pixels per character, so a denser or larger font
+   still scrolls at the same reading pace.
+   - touching / wheeling / dragging the page holds it for a moment, then it resumes
+   - tapping the prayer text pauses or resumes
+   - the screen is kept awake while it runs (Screen Wake Lock API, where supported)
+   ------------------------------------------------------------ */
+const autoScroll = {
+  playing: false, raf: 0, last: 0, pos: 0, lastSet: -1, holdUntil: 0,
+  rate: 0, startTimer: 0, wake: null,
+
+  recalc(){
+    const body = $('#rdBody');
+    if (!body || !state.route || state.route.name !== 'read') return;
+    const chars = Math.max(40, body.textContent.replace(/\s/g, '').length);
+    const h = body.getBoundingClientRect().height || 1;
+    this.rate = (h / chars) * (settings.scrollCpm / 60);       // px per second
+  },
+  maxY(){ return Math.max(0, document.documentElement.scrollHeight - window.innerHeight); },
+  canScroll(){ return this.maxY() > 24; },
+
+  start({ quiet = false } = {}){
+    clearTimeout(this.startTimer);
+    if (!state.route || state.route.name !== 'read') return;
+    if (!this.canScroll()) { if (!quiet) toast('화면 안에 모두 보여서 스크롤할 내용이 없습니다', 'info'); return; }
+    if (window.scrollY >= this.maxY() - 2) window.scrollTo(0, 0);
+    this.recalc();
+    this.playing = true;
+    this.pos = window.scrollY;
+    this.lastSet = -1;
+    this.holdUntil = 0;
+    this.last = performance.now();
+    cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame(t => this.tick(t));
+    this.lockScreen();
+    this.ui();
+  },
+  stop({ reason = '' } = {}){
+    clearTimeout(this.startTimer);
+    cancelAnimationFrame(this.raf);
+    const was = this.playing;
+    this.playing = false;
+    this.releaseScreen();
+    this.ui();
+    if (was && reason) toast(reason, 'check');
+  },
+  toggle(){ this.playing ? this.stop() : this.start(); },
+  /* Called when a prayer opens: start after a short pause if 설정 says so. */
+  schedule(){
+    clearTimeout(this.startTimer);
+    if (!settings.autoScroll) return;
+    this.startTimer = setTimeout(() => this.start({ quiet:true }), 2200);
+  },
+  hold(ms = 1600){
+    if (!this.playing) { clearTimeout(this.startTimer); return; }
+    this.holdUntil = performance.now() + ms;
+  },
+  tick(t){
+    if (!this.playing) return;
+    const dt = Math.min(100, t - this.last) / 1000;
+    this.last = t;
+    const y = window.scrollY;
+    // The page moved without us (finger, wheel, scrollbar, keyboard): follow it, pause briefly.
+    if (this.lastSet >= 0 && Math.abs(y - this.lastSet) > 3) { this.holdUntil = t + 1600; }
+    if (t < this.holdUntil) {
+      this.pos = y; this.lastSet = -1;
+    } else {
+      this.pos += this.rate * dt;
+      const max = this.maxY();
+      if (this.pos >= max) {
+        window.scrollTo(0, max);
+        this.stop({ reason: '기도문 끝까지 내려왔습니다' });
+        return;
+      }
+      window.scrollTo(0, this.pos);
+      this.lastSet = window.scrollY;
+    }
+    this.raf = requestAnimationFrame(tt => this.tick(tt));
+  },
+  async lockScreen(){
+    try {
+      if (!this.wake && navigator.wakeLock && document.visibilityState === 'visible') {
+        this.wake = await navigator.wakeLock.request('screen');
+        this.wake.addEventListener('release', () => { this.wake = null; });
+      }
+    } catch (e) { this.wake = null; }
+  },
+  releaseScreen(){
+    try { if (this.wake) this.wake.release(); } catch (e) {}
+    this.wake = null;
+  },
+  ui(){
+    const dock = $('#scrollDock');
+    if (!dock) return;
+    dock.classList.toggle('playing', this.playing);
+    document.body.classList.toggle('autoscrolling', this.playing);
+    const btn = $('#asToggle');
+    btn.setAttribute('aria-pressed', String(this.playing));
+    btn.innerHTML = (this.playing ? icon('pause', 16) : icon('play', 16)) +
+      `<span>${this.playing ? '멈춤' : '자동 스크롤'}</span><span class="as-rate">${settings.scrollCpm}자/분</span>`;
+    btn.setAttribute('aria-label', (this.playing ? '자동 스크롤 멈춤' : '자동 스크롤 시작') + `, 1분에 ${settings.scrollCpm}자`);
+    $('#asSlower').disabled = settings.scrollCpm <= CPM_MIN;
+    $('#asFaster').disabled = settings.scrollCpm >= CPM_MAX;
+  }
+};
+function setScrollCpm(v, { announce = false } = {}){
+  settings.scrollCpm = Math.min(CPM_MAX, Math.max(CPM_MIN, Math.round(v / 10) * 10));
+  saveSettings();
+  autoScroll.recalc();
+  autoScroll.ui();
+  syncRange();
+  if (announce && !autoScroll.playing) toast(`읽는 속도: 1분에 ${settings.scrollCpm}자`, 'check');
+}
+
+/* Reading progress line at the top of the reader */
+let progressQueued = false;
+function updateReadProgress(){
+  if (progressQueued) return;
+  progressQueued = true;
+  requestAnimationFrame(() => {
+    progressQueued = false;
+    const bar = $('#readProgress');
+    if (!bar || !state.route || state.route.name !== 'read') return;
+    const max = autoScroll.maxY();
+    bar.style.transform = `scaleX(${max > 0 ? Math.min(1, window.scrollY / max) : 1})`;
+  });
 }
 
 /* ------------------------------------------------------------
@@ -2037,21 +2774,29 @@ function route(){
   }
   const r = parseHash();
   const prev = state.route;
-  if (prev && prev.name === 'home') state.homeScroll = window.scrollY;
+  if (prev && prev.name === 'home') { state.homeScroll = window.scrollY; state.homeShown = listState.shown; }
   if (prev && prev.name === 'edit' && r.name !== 'edit') writeDraft();
+  if (prev && prev.name === 'read' && (r.name !== 'read' || r.id !== prev.id)) autoScroll.stop();
   state.route = r;
   document.body.dataset.view = r.name;
+  document.body.classList.toggle('focus', r.name === 'read' && state.focus);
   Object.keys(views).forEach(k => { views[k].hidden = k !== r.name; });
 
   let ok = true;
   if (r.name === 'home') {
-    renderHome();
+    renderHome({ atLeast: state.homeShown });
     document.title = 'Prayer | 기도문';
     const y = state.homeScroll;
-    requestAnimationFrame(() => window.scrollTo(0, y));
+    requestAnimationFrame(() => { window.scrollTo(0, y); updateToTop(); });
   } else if (r.name === 'read') {
     ok = renderRead(r.id);
-    if (ok) window.scrollTo(0, 0);
+    if (ok) {
+      window.scrollTo(0, 0);
+      $('#rdFocus').setAttribute('aria-pressed', String(!!state.focus));
+      autoScroll.ui();
+      updateReadProgress();
+      if (!prev || prev.name !== 'read' || prev.id !== r.id) autoScroll.schedule();
+    }
   } else {
     ok = openEditor(r.id);
     if (ok) window.scrollTo(0, 0);
@@ -2069,7 +2814,7 @@ function route(){
    Supabase cloud layer
    ------------------------------------------------------------ */
 const cloud = {
-  sb: null, user: null, channel: null,
+  sb: null, user: null, channel: null, multiCat: null,
   phase: 'connecting',          // connecting | loading | ready | error | config | locked
   error: '', pending: 0, realtime: 'off', lastLoad: 0, reloading: false,
   catReloadTimer: null
@@ -2154,12 +2899,19 @@ function must(res){
 }
 
 /* app item  <->  public.prayers row  (see the mapping table at the top of the script) */
-const PRAYER_COLS = 'id,title,category,content,prayer_date,tags,memo,is_favorite,created_at,updated_at';
+/* `categories` exists once supabase-schema.sql (6번) has been run. Until then the
+   app keeps working with the single `category` column (cloud.multiCat === false). */
+const PRAYER_COLS_BASE = 'id,title,category,content,prayer_date,tags,memo,is_favorite,created_at,updated_at';
+const prayerCols = () => cloud.multiCat === false ? PRAYER_COLS_BASE : PRAYER_COLS_BASE + ',categories';
+function missingCategoriesColumn(e){
+  const code = String(e && e.code || ''), msg = String(e && (e.message || e.details || e.hint) || '');
+  return /categories/i.test(msg) && (code === '42703' || code === 'PGRST204' || code === 'PGRST200' || /column|schema cache|does not exist/i.test(msg));
+}
 function toRow(p){
-  return {
+  const row = {
     id: p.id,
     title: p.title,
-    category: p.category,
+    category: catsOf(p)[0],
     content: p.content,
     prayer_date: p.date,
     tags: p.tags,
@@ -2168,6 +2920,8 @@ function toRow(p){
     created_at: new Date(p.createdAt).toISOString(),
     updated_at: new Date(p.updatedAt).toISOString()
   };
+  if (cloud.multiCat !== false) row.categories = catsOf(p);
+  return row;
 }
 function fromRow(r){
   if (!r) return null;
@@ -2175,6 +2929,7 @@ function fromRow(r){
     id: r.id,
     title: r.title,
     category: r.category,
+    categories: Array.isArray(r.categories) && r.categories.length ? r.categories : null,
     content: r.content,
     date: String(r.prayer_date || '').slice(0, 10),
     tags: r.tags || [],
@@ -2189,8 +2944,14 @@ const api = {
   async fetchAllPrayers(){
     const PAGE = 1000, out = [];
     for (let from = 0; ; from += PAGE) {
-      const rows = must(await cloud.sb.from('prayers').select(PRAYER_COLS)
-        .order('created_at', { ascending: true }).order('id').range(from, from + PAGE - 1));
+      const res = await cloud.sb.from('prayers').select(prayerCols())
+        .order('created_at', { ascending: true }).order('id').range(from, from + PAGE - 1);
+      if (res.error && cloud.multiCat !== false && missingCategoriesColumn(res.error)) {
+        cloud.multiCat = false;                       // old schema: retry without the new column
+        return this.fetchAllPrayers();
+      }
+      const rows = must(res);
+      if (from === 0 && cloud.multiCat !== false) cloud.multiCat = true;
       out.push(...rows);
       if (rows.length < PAGE) break;
     }
@@ -2203,21 +2964,21 @@ const api = {
   async insertPrayers(list){
     const out = [];
     for (let i = 0; i < list.length; i += 500) {
-      out.push(...must(await cloud.sb.from('prayers').insert(list.slice(i, i + 500).map(toRow)).select(PRAYER_COLS)));
+      out.push(...must(await cloud.sb.from('prayers').insert(list.slice(i, i + 500).map(toRow)).select(prayerCols())));
     }
     return out.map(fromRow).filter(Boolean);
   },
   async upsertPrayers(list){
     const out = [];
     for (let i = 0; i < list.length; i += 500) {
-      out.push(...must(await cloud.sb.from('prayers').upsert(list.slice(i, i + 500).map(toRow), { onConflict: 'id' }).select(PRAYER_COLS)));
+      out.push(...must(await cloud.sb.from('prayers').upsert(list.slice(i, i + 500).map(toRow), { onConflict: 'id' }).select(prayerCols())));
     }
     return out.map(fromRow).filter(Boolean);
   },
   async updatePrayer(p){
     const row = toRow(p);
     delete row.id; delete row.created_at;
-    const data = must(await cloud.sb.from('prayers').update(row).eq('id', p.id).select(PRAYER_COLS));
+    const data = must(await cloud.sb.from('prayers').update(row).eq('id', p.id).select(prayerCols()));
     if (!data || !data.length) throw { code: 'gone', message: 'row not found' };
     return fromRow(data[0]);
   },
@@ -2333,7 +3094,7 @@ async function mergePending(){
     .map(p => Object.assign(p, { id: uid() }));
   if (add.length) {
     const order = Array.isArray(pending.cats) ? pending.cats : [];
-    await ensureCategories(order.filter(c => add.some(p => p.category === c)).concat(add.map(p => p.category)));
+    await ensureCategories(order.filter(c => add.some(p => inCat(p, c))).concat(add.flatMap(catsOf)));
     const saved = await api.insertPrayers(add);
     saved.forEach(upsertLocal);
   }
@@ -2379,7 +3140,7 @@ async function loadCloudData(){
     const seed = prayers.length ? [] : (legacy ? legacy.items : (hasPending ? [] : makeSamples()));
     const baseCats = (legacy ? legacy.categories : DEFAULT_CATS)
       .map(c => String(c).trim().slice(0, CAT_MAX)).filter(c => c && !RESERVED_CATS.includes(c));
-    const names = [...new Set(baseCats.concat(prayers.concat(seed).map(p => p.category)))];
+    const names = [...new Set(baseCats.concat(prayers.concat(seed).flatMap(catsOf)))];
     rows = await api.insertCategories(names.length ? names : DEFAULT_CATS, 0);
     if (seed.length) prayers = prayers.concat(await api.insertPrayers(seed));
     if (legacy) {
@@ -2390,7 +3151,7 @@ async function loadCloudData(){
     const migrated = await migrateDefaultCategories(rows);
     if (migrated) { rows = migrated; prayers = await api.fetchAllPrayers(); }
     const known = new Set(rows.map(r => r.name));
-    const missing = [...new Set(prayers.map(p => p.category))].filter(c => !known.has(c));
+    const missing = [...new Set(prayers.flatMap(catsOf))].filter(c => !known.has(c));
     if (missing.length) {
       const start = rows.reduce((m, r) => Math.max(m, r.sort_order), -1) + 1;
       rows = rows.concat(await api.insertCategories(missing, start));
@@ -2596,7 +3357,7 @@ function onPrayerRow(payload){
   const ex = findItem(it.id);
   if (ex) { if (it.updatedAt >= ex.updatedAt) Object.assign(ex, it); }
   else items.push(it);
-  if (!catNames.includes(it.category)) onCategoryChange();
+  if (catsOf(it).some(c => !catNames.includes(c))) onCategoryChange();
   scheduleRefresh();
 }
 function onPrayerDelete(payload){
@@ -2661,14 +3422,15 @@ function renderVerseInfo(){
   const el = $('#verseStatus');
   if (!el) return;
   const saved = store.get(KEY_BIBLE_SRC, null);
-  const where = saved === 'bible/' ? '이 사이트의 bible 폴더' : (saved ? 'jsDelivr CDN' : '아직 받지 않음');
-  const cached = bookMem.size;
+  const srcDef = BIBLE_SOURCES.find(s => s.id === saved || s.url({ bi:0, book:'', key:'' }).startsWith(String(saved)));
+  const where = srcDef ? srcDef.label : '아직 받지 않음';
+  const shown = verseState.phase === 'ready' ? verseShown() : null;
   el.classList.toggle('warn', verseState.phase === 'error');
   el.textContent = verseState.phase === 'error'
     ? verseState.error
     : verseState.phase === 'loading'
       ? '오늘의 말씀을 불러오는 중입니다…'
-      : `${verseState.loc ? verseState.loc.ref + ' · ' : ''}받아 오는 곳: ${where}${cached ? ` · 이번 접속에서 ${cached}권 사용 중` : ''}`;
+      : `${verseState.loc ? verseState.loc.ref + (shown ? ` (${shown.modern ? '현대어' : '개역한글'})` : '') + ' · ' : ''}받아 오는 곳: ${where}${bookMem.size ? ` · 이번 접속에서 ${bookMem.size}권 사용 중` : ''}`;
 }
 function renderConnInfo(){
   const s = $('#connState');
@@ -2683,6 +3445,12 @@ function renderConnInfo(){
   renderSyncSection();
   const rt = { SUBSCRIBED:'켜짐', CHANNEL_ERROR:'연결 실패 (새로고침 시 반영)', TIMED_OUT:'시간 초과 (재시도 중)', CLOSED:'꺼짐', off:'-' };
   $('#connRealtime').textContent = rt[cloud.realtime] || cloud.realtime;
+  const mc = $('#connMultiCat');
+  mc.textContent = cloud.multiCat === true ? '사용 중' : cloud.multiCat === false ? '데이터베이스 업데이트 필요' : '-';
+  mc.className = cloud.multiCat === true ? 'is-ok' : cloud.multiCat === false ? 'is-err' : '';
+  const cn = $('#catSchemaNote');
+  cn.hidden = cloud.multiCat !== false;
+  cn.textContent = '기도문 하나에 여러 카테고리를 붙이려면 Supabase 대시보드 → SQL Editor에서 새 supabase-schema.sql 전체를 한 번 실행하세요. 기존 기도문과 카테고리는 그대로 보존됩니다. 실행한 뒤 ‘다시 불러오기’를 누르면 바로 적용됩니다.';
   $('#connNote').textContent = autoSyncConfigured()
     ? '이 주소를 여는 모든 기기가 같은 계정으로 자동 연결되어 같은 기도문을 봅니다. 주소를 아는 사람은 로그인 없이 볼 수 있으니 주소를 공유하지 마시고, 중요한 기도문은 백업 파일로도 보관하세요.'
     : '동기화 코드를 입력한 기기끼리는 같은 기도문이 실시간으로 보입니다. 코드를 입력하지 않은 기기는 그 브라우저 전용 계정을 쓰며, 브라우저 데이터를 지우면 그 전용 계정에는 다시 들어올 수 없습니다.';
@@ -2744,7 +3512,18 @@ function syncRange(){
   r.value = settings.readSize;
   fillRange(r);
   $('#sizeOut').textContent = Math.round(settings.readSize * 16) + 'px';
-  $('.range-sample').style.fontSize = settings.readSize + 'rem';
+  $('#rangeSample').style.fontSize = settings.readSize + 'rem';
+  const lh = $('#lhRange');
+  lh.value = settings.lineHeight; fillRange(lh);
+  $('#lhOut').textContent = settings.lineHeight.toFixed(2) + '배';
+  const cpm = $('#cpmRange');
+  cpm.value = settings.scrollCpm; fillRange(cpm);
+  $('#cpmOut').textContent = `1분에 ${settings.scrollCpm}자`;
+  $$('#fontGroup input').forEach(i => { i.checked = i.value === settings.readFont; });
+  $('#asAuto').checked = settings.autoScroll;
+  $$('#verseTrGroup input').forEach(i => { i.checked = i.value === settings.verseTr; });
+  $$('#versePoolGroup input').forEach(i => { i.checked = i.value === settings.versePool; });
+  $$('#verseCycleGroup input').forEach(i => { i.checked = i.value === settings.verseCycle; });
 }
 function syncBgControls(){
   $$('#bgModeGroup input').forEach(i => { i.checked = i.value === settings.bgMode; });
@@ -2810,7 +3589,7 @@ async function importData(file){
     const btn = $('#btnImport');
     setBusy(btn, true, '가져오는 중…');
     try {
-      await cloudOp(() => ensureCategories(toWrite.map(p => p.category)));
+      await cloudOp(() => ensureCategories(toWrite.flatMap(catsOf)));
       const saved = await cloudOp(() => api.upsertPrayers(toWrite));   // UPSERT public.prayers
       saved.forEach(upsertLocal);
     } catch (e) { return; } finally { setBusy(btn, false); }
@@ -2826,7 +3605,7 @@ function refresh(){
   if (r.name === 'home') renderHome();
   else if (r.name === 'read') renderRead(r.id);
   else if (r.name === 'edit') {
-    const cur = ($('#fCats input:checked') || {}).value;
+    const cur = state.formCats.slice();
     renderCatOptions();
     setCatChoice(cur);
   }
@@ -2855,7 +3634,7 @@ function validateCat(name, exceptIdx = -1){
 function renderCatManager(){
   const list = cats();
   const counts = {};
-  items.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
+  items.forEach(p => { catsOf(p).forEach(c => { counts[c] = (counts[c] || 0) + 1; }); });
   $('#catList').innerHTML = list.map((c, i) => {
     if (i === catEditIndex) {
       return `<li class="cat-row editing">
@@ -2876,8 +3655,17 @@ function renderCatManager(){
   const inp = $('#catEditInput');
   if (inp) { inp.focus(); inp.select(); }
 }
-function remapDrafts(from, to){
-  Object.values(drafts).forEach(d => { if (d && d.data && d.data.category === from) d.data.category = to; });
+/* Keep unsaved drafts in step with a renamed (to = new name) or deleted (remove = true) category. */
+function remapDrafts(from, to, remove = false){
+  Object.values(drafts).forEach(d => {
+    if (!d || !d.data) return;
+    let list = Array.isArray(d.data.categories) ? d.data.categories : (d.data.category ? [d.data.category] : []);
+    if (!list.includes(from)) return;
+    list = remove ? list.filter(c => c !== from) : list.map(c => c === from ? to : c);
+    if (!list.length) list = [to];
+    d.data.categories = [...new Set(list)];
+    delete d.data.category;
+  });
   saveDrafts();
 }
 async function addCategory(){
@@ -2915,15 +3703,20 @@ async function renameCategory(i){
   if (row) row.name = name;
   setCatRows(catRows);
   let n = 0;
-  items.forEach(p => { if (p.category === old) { p.category = name; n++; } });
+  items.forEach(p => {
+    if (!inCat(p, old)) return;
+    p.categories = catsOf(p).map(c => c === old ? name : c);
+    p.category = p.categories[0];
+    n++;
+  });
   if (state.cat === old) state.cat = name;
   remapDrafts(old, name);
   catEditIndex = -1;
   catMsg(n ? `‘${old}’을(를) ‘${name}’(으)로 바꾸고 기도문 ${n}개에 반영했습니다` : `‘${name}’(으)로 이름을 바꿨습니다`);
   renderCatManager();
   if (state.route && state.route.name === 'edit') {
-    const cur = ($('#fCats input:checked') || {}).value;
-    renderCatOptions(); setCatChoice(cur === old ? name : cur);
+    const cur = state.formCats.map(c => c === old ? name : c);
+    renderCatOptions(); setCatChoice(cur);
   } else refresh();
 }
 async function deleteCategory(i){
@@ -2931,12 +3724,14 @@ async function deleteCategory(i){
   const list = cats();
   if (list.length <= 1) { catMsg('카테고리는 하나 이상 있어야 합니다', true); return; }
   const name = list[i];
-  const n = items.filter(p => p.category === name).length;
+  const n = items.filter(p => inCat(p, name)).length;
+  const moved = items.filter(p => inCat(p, name) && catsOf(p).length === 1).length;
   const fb = fallbackCat(name);
   const ok = await confirmDialog({
     title: `‘${name}’ 카테고리를 삭제할까요?`,
-    message: n ? `이 카테고리의 기도문 ${n}개는 ‘${fb}’ 카테고리로 옮겨집니다. 기도문 자체는 삭제되지 않습니다.`
-               : '이 카테고리에 속한 기도문은 없습니다.',
+    message: !n ? '이 카테고리에 속한 기도문은 없습니다.'
+      : moved === n ? `이 카테고리의 기도문 ${n}개는 ‘${fb}’ 카테고리로 옮겨집니다. 기도문 자체는 삭제되지 않습니다.`
+      : `기도문 ${n}개에서 이 카테고리가 빠집니다. 이 카테고리만 붙어 있던 ${moved}개는 ‘${fb}’(으)로 옮겨집니다. 기도문 자체는 삭제되지 않습니다.`,
     confirm: '삭제', danger: true
   });
   if (!ok) return;
@@ -2947,11 +3742,17 @@ async function deleteCategory(i){
     setCatRows(await api.fetchCategories());
   } catch (e) { catMsg(friendlyError(e), true); return; }
   finally { state.catBusy = false; }
-  items.forEach(p => { if (p.category === name) p.category = fb; });
+  items.forEach(p => {
+    if (!inCat(p, name)) return;
+    const rest = catsOf(p).filter(c => c !== name);
+    p.categories = rest.length ? rest : [fb];
+    p.category = p.categories[0];
+  });
   if (state.cat === name) state.cat = 'all';
-  remapDrafts(name, fb);
+  remapDrafts(name, fb, true);
   catEditIndex = -1;
-  catMsg(n ? `‘${name}’을(를) 삭제하고 기도문 ${n}개를 ‘${fb}’(으)로 옮겼습니다` : `‘${name}’ 카테고리를 삭제했습니다`);
+  catMsg(n ? `‘${name}’ 카테고리를 삭제했습니다${moved ? ` (기도문 ${moved}개는 ‘${fb}’(으)로 옮김)` : ''}` : `‘${name}’ 카테고리를 삭제했습니다`);
+  if (state.route && state.route.name === 'edit') { const cur = state.formCats.filter(c => c !== name); renderCatOptions(); setCatChoice(cur.length ? cur : [fb]); }
   renderCatManager(); refresh();
 }
 async function moveCategory(i, d){
@@ -3465,7 +4266,19 @@ function setupStatic(){
   $('#rdEdit').innerHTML = icon('edit', 19);
   $('#rdDelete').innerHTML = icon('trash', 19);
   $('#rdCopy').innerHTML = icon('copy', 16) + '복사';
-  $('#edDelete').innerHTML = icon('trash', 18) + '<span>삭제</span>';
+  $('#rdFocus').innerHTML = icon('focus', 19);
+  $('#edDelete').innerHTML = icon('trash', 18) + '<span>이 기도문 삭제</span>';
+  $('#viewCard').innerHTML = icon('grid', 18);
+  $('#viewCompact').innerHTML = icon('rows', 18);
+  $('#toTop').innerHTML = icon('arrowUp', 16) + '맨 위로';
+  syncViewToggle();
+  autoScroll.ui();
+  if (window.matchMedia('(max-width:719px)').matches) $('#q').placeholder = '기도문 검색';
+  // Mobile: the search bar sticks to the top; give it a backdrop only while it is stuck.
+  if (typeof IntersectionObserver === 'function') {
+    new IntersectionObserver(([e]) => $('#listHead').classList.toggle('stuck', !e.isIntersecting && e.boundingClientRect.top < 0))
+      .observe($('#listHeadSentinel'));
+  }
   $('#setClose').innerHTML = icon('x', 18);
   $('#btnExport').innerHTML = icon('download', 18) + '백업 내려받기';
   $('#btnImport').innerHTML = icon('upload', 18) + '백업 불러오기';
@@ -3477,7 +4290,22 @@ function setupStatic(){
     `<label class="scene-opt"><input type="radio" name="scene" value="${key}"><span class="scene-swatch" style="background:${s.swatch}"></span><span class="scene-name">${esc(s.name)}</span></label>`
   ).join('');
 
-  document.documentElement.style.setProperty('--read-size', settings.readSize + 'rem');
+  applyReadVars();
+}
+function syncViewToggle(){
+  $('#viewCard').setAttribute('aria-pressed', String(settings.listView === 'card'));
+  $('#viewCompact').setAttribute('aria-pressed', String(settings.listView === 'compact'));
+}
+/* "맨 위로" appears once the list has been scrolled well down. */
+let toTopQueued = false;
+function updateToTop(){
+  if (toTopQueued) return;
+  toTopQueued = true;
+  requestAnimationFrame(() => {
+    toTopQueued = false;
+    const btn = $('#toTop');
+    if (btn) btn.classList.toggle('show', !!(state.route && state.route.name === 'home') && window.scrollY > window.innerHeight * 1.5);
+  });
 }
 
 /* ------------------------------------------------------------
@@ -3523,7 +4351,9 @@ function bindEvents(){
     const act = e.target.closest('[data-action]');
     if (act) {
       const a = act.dataset.action;
-      if (a === 'new') { if (act.dataset.action === 'new' && act.classList.contains('circle-btn')) state.verseSeed = dailyVerse(); go('#/new'); }
+      if (a === 'new') { state.verseSeed = act.dataset.seed === 'verse' ? dailyVerse() : null; go('#/new'); }
+      else if (a === 'verse-next') nextVerse();
+      else if (a === 'verse-copy') copyVerse();
       else if (a === 'settings') openSettings();
       else if (a === 'retry') initCloud();
       else if (a === 'verse-retry') loadDailyVerse({ force:true });
@@ -3536,20 +4366,48 @@ function bindEvents(){
 
   // Search & sort
   const q = $('#q');
-  q.addEventListener('input', () => { state.q = q.value; renderList(); });
+  let qTimer = null;
+  q.addEventListener('input', () => {
+    clearTimeout(qTimer);
+    $('#btnClear').hidden = !q.value;
+    qTimer = setTimeout(() => { state.q = q.value; renderList(); }, items.length > 150 ? 180 : 90);
+  });
   q.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && q.value) { e.preventDefault(); state.q = ''; q.value = ''; renderList(); }
-    if (e.key === 'Enter') q.blur();
+    if (e.key === 'Escape' && q.value) { e.preventDefault(); clearTimeout(qTimer); state.q = ''; q.value = ''; renderList(); }
+    if (e.key === 'Enter') { clearTimeout(qTimer); state.q = q.value; renderList(); q.blur(); }
   });
   $('#sort').addEventListener('change', e => {
     state.sort = e.target.value; settings.sort = state.sort; saveSettings(); renderList();
   });
+  $$('.view-toggle [data-view-mode]').forEach(b => b.addEventListener('click', () => {
+    if (settings.listView === b.dataset.viewMode) return;
+    settings.listView = b.dataset.viewMode; saveSettings(); syncViewToggle(); renderList();
+  }));
+  $('#listMoreBtn').addEventListener('click', () => appendCards());
+  $('#toTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
   // Reader
   $('#rdFav').addEventListener('click', () => toggleFav(state.route.id));
   $('#rdEdit').addEventListener('click', () => go('#/edit/' + encodeURIComponent(state.route.id)));
   $('#rdDelete').addEventListener('click', () => deletePrayer(state.route.id));
   $('#rdCopy').addEventListener('click', () => copyPrayer(state.route.id));
+  $('#rdFont').addEventListener('click', () => setReadFont(settings.readFont === 'serif' ? 'sans' : 'serif'));
+  $('#rdFocus').addEventListener('click', () => {
+    state.focus = !state.focus;
+    document.body.classList.toggle('focus', state.focus);
+    $('#rdFocus').setAttribute('aria-pressed', String(state.focus));
+    autoScroll.recalc();
+    toast(state.focus ? '집중 모드: 기도문만 보여 줍니다' : '집중 모드를 껐습니다', 'check');
+  });
+  // Tap the prayer text to pause / resume auto-scroll (not while selecting text).
+  $('#rdBody').addEventListener('click', () => {
+    const sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed) return;
+    if (autoScroll.playing || settings.autoScroll) autoScroll.toggle();
+  });
+  $('#asToggle').addEventListener('click', () => autoScroll.toggle());
+  $('#asSlower').addEventListener('click', () => setScrollCpm(settings.scrollCpm - 20, { announce:true }));
+  $('#asFaster').addEventListener('click', () => setScrollCpm(settings.scrollCpm + 20, { announce:true }));
   $('#rdSmaller').addEventListener('click', () => setReadSize(settings.readSize - .05));
   $('#rdLarger').addEventListener('click', () => setReadSize(settings.readSize + .05));
   ['#rdPrev', '#rdNext'].forEach(sel => {
@@ -3577,7 +4435,10 @@ function bindEvents(){
     }
     scheduleDraft();
   });
-  form.addEventListener('change', e => { if (e.target.name === 'cat' || e.target.id === 'fDate') scheduleDraft(); });
+  form.addEventListener('change', e => {
+    if (e.target.name === 'cat') onCatInput(e.target);
+    else if (e.target.id === 'fDate') scheduleDraft();
+  });
   $('#fTitle').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); $('#fContent').focus(); }
   });
@@ -3612,7 +4473,10 @@ function bindEvents(){
     if (r.name === 'read') {
       if (e.key === 'ArrowLeft') $('#rdPrev').click();
       else if (e.key === 'ArrowRight') $('#rdNext').click();
-      else if (e.key === 'Escape') goBack('#/');
+      else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); autoScroll.toggle(); }
+      else if (e.key === 'f' || e.key === 'F') $('#rdFocus').click();
+      else if (e.key === 'Escape') { if (autoScroll.playing) autoScroll.stop(); else if (state.focus) $('#rdFocus').click(); else goBack('#/'); }
+      else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key)) autoScroll.hold(2000);
     }
   });
 
@@ -3697,6 +4561,26 @@ function bindEvents(){
   });
   $('#catNew').addEventListener('input', () => { if ($('#catMsg').classList.contains('err')) catMsg(''); });
   $('#sizeRange').addEventListener('input', e => setReadSize(parseFloat(e.target.value)));
+  $('#lhRange').addEventListener('input', e => setLineHeight(parseFloat(e.target.value)));
+  $('#cpmRange').addEventListener('input', e => setScrollCpm(parseFloat(e.target.value)));
+  $('#fontGroup').addEventListener('change', e => { if (e.target.name === 'readFont') setReadFont(e.target.value); });
+  $('#asAuto').addEventListener('change', e => { settings.autoScroll = e.target.checked; saveSettings(); });
+  const verseOpt = (id, key) => $(id).addEventListener('change', e => {
+    if (e.target.name !== key) return;
+    settings[key] = e.target.value; saveSettings();
+    if (key === 'verseTr') {
+      // The modern text may still need downloading; otherwise just redraw.
+      const needFetch = e.target.value !== 'krv' && verseState.loc && !(bookMem.get(verseState.loc.key) || {}).modern && !modernTried.has(verseState.loc.key);
+      if (needFetch || verseState.phase !== 'ready') loadDailyVerse({ force:true });
+      else { renderHeroIfHome(); renderVerseInfo(); }
+    } else {
+      verseState.offset = 0;
+      loadDailyVerse({ force:true });
+    }
+  });
+  verseOpt('#verseTrGroup', 'verseTr');
+  verseOpt('#versePoolGroup', 'versePool');
+  verseOpt('#verseCycleGroup', 'verseCycle');
   $('#btnExport').addEventListener('click', exportData);
   $('#btnImport').addEventListener('click', () => $('#importFile').click());
   $('#importFile').addEventListener('change', e => {
@@ -3712,7 +4596,7 @@ function bindEvents(){
     const btn = e.currentTarget;
     setBusy(btn, true, '추가하는 중…');
     try {
-      await cloudOp(() => ensureCategories(add.map(p => p.category)));
+      await cloudOp(() => ensureCategories(add.flatMap(catsOf)));
       const saved = await cloudOp(() => api.insertPrayers(add));        // INSERT public.prayers
       saved.forEach(upsertLocal);
     } catch (err) { return; } finally { setBusy(btn, false); }
@@ -3749,14 +4633,21 @@ function bindEvents(){
     rt = setTimeout(() => {
       drawBackground();
       if (state.route && state.route.name === 'edit') { autosize($('#fContent')); autosize($('#fMemo')); }
+      autoScroll.recalc();
+      updateReadProgress();
     }, 160);
   });
+  window.addEventListener('scroll', () => { updateToTop(); updateReadProgress(); }, { passive:true });
+  // A finger or wheel on the page holds auto-scroll for a moment (it resumes by itself).
+  ['wheel', 'touchstart', 'touchmove'].forEach(ev => window.addEventListener(ev, () => autoScroll.hold(1800), { passive:true }));
   window.addEventListener('pagehide', writeDraft);
   // Connection awareness: refresh after coming back online or returning to the tab.
   window.addEventListener('online', () => { setSync(); if (verseState.phase === 'error') loadDailyVerse({ force:true }); if (cloud.phase === 'error') initCloud(); else softReload(); });
   window.addEventListener('offline', setSync);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && cloud.phase === 'ready' && Date.now() - cloud.lastLoad > 60000) softReload();
+    if (!document.hidden && autoScroll.playing) { autoScroll.lockScreen(); autoScroll.hold(1200); }
+    if (!document.hidden && cycleKey() !== verseState.key) loadDailyVerse();
   });
   $('#syncPill').addEventListener('click', () => {
     if (cloud.phase === 'error' || cloud.phase === 'config') initCloud();
@@ -3787,6 +4678,7 @@ function bindEvents(){
     toast('받아 둔 말씀을 지우고 다시 불러왔습니다', 'check');
   });
   $('#btnReload').addEventListener('click', () => {
+    if (cloud.multiCat === false) cloud.multiCat = null;   // check again whether the schema was updated
     if (cloud.phase === 'ready') softReload({ notify:true }); else initCloud();
   });
 }
