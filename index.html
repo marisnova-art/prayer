@@ -275,6 +275,25 @@ body.has-photo .bg-veil{
 .today-foot .btn-quiet{padding:0 10px 0 8px;gap:4px}
 .today .skel{height:13px;margin-bottom:11px}
 .today .note{font-size:.8rem;color:var(--text-3);margin:8px 0 0}
+/* A photo from the current background set, chosen at random on every load (applyCardPhotos) */
+.hero.has-photo,.today.has-photo{-webkit-backdrop-filter:none;backdrop-filter:none;border-color:rgba(255,255,255,.3);background:#14231b;
+  text-shadow:0 1px 14px rgba(0,0,0,.5)}
+.hero.has-photo::before,.today.has-photo::before{
+  background:
+    radial-gradient(90% 60% at 0% 0%, rgba(255,255,255,.12), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, rgba(6,12,9,.26) 0%, rgba(6,12,9,.44) 40%, rgba(6,12,9,.76) 100%),
+    var(--card-img) center / cover no-repeat;
+  animation:cardPhotoIn 1.4s var(--ease) both;
+}
+.today.has-photo::before{
+  background:
+    radial-gradient(90% 60% at 0% 0%, rgba(255,255,255,.1), rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, rgba(6,12,9,.55) 0%, rgba(6,12,9,.66) 45%, rgba(6,12,9,.8) 100%),
+    var(--card-img) center / cover no-repeat;
+}
+@keyframes cardPhotoIn{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:none}}
+.has-photo .icon-btn{background:rgba(0,0,0,.22)}
+.has-photo .pill{background:rgba(0,0,0,.18)}
 .today-foot-src{margin-left:auto;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hero.intro{animation:heroIn 1.2s var(--ease) both}
 @keyframes heroIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
@@ -550,6 +569,7 @@ body:not([data-view="read"]) .scroll-dock{display:none}
 .as-sep{width:1px;height:22px;background:rgba(255,255,255,.16);flex-shrink:0}
 .scroll-dock .as-nav{gap:3px;padding:0 12px 0 8px;font-size:.8rem;color:var(--text-3)}
 .scroll-dock .as-nav.next{padding:0 8px 0 12px}
+.scroll-dock .as-nav.list{padding:0 10px 0 10px;margin-right:-2px}
 .scroll-dock .as-nav:disabled{opacity:.28;cursor:default}
 @media (hover:hover){
   .scroll-dock button:hover:not(:disabled){background:rgba(255,255,255,.1);color:#fff}
@@ -960,6 +980,7 @@ dialog.share{width:min(460px, calc(100vw - 32px))}
   .scroll-dock .as-step{width:36px}
   .scroll-dock .as-nav{width:40px;padding:0}
   .scroll-dock .as-nav.next{padding:0}
+  .scroll-dock .as-nav.list{width:38px;padding:0;margin-right:-4px}
   .scroll-dock .as-nav-label{display:none}
   .as-sep{height:18px}
 
@@ -1000,12 +1021,21 @@ dialog.share{width:min(460px, calc(100vw - 32px))}
     padding:12px 20px calc(14px + env(safe-area-inset-bottom));background:rgba(14,26,20,.96);border-top:1px solid rgba(255,255,255,.1)}
   .segmented span{font-size:.84rem}
 }
+@media (max-width:460px){
+  /* keep the whole dock on screen: the speed shows as a toast when −/+ is tapped */
+  .scroll-dock .as-main{min-width:104px;padding:0 12px 0 10px}
+  .scroll-dock .as-main .as-rate{display:none}
+}
 @media (max-width:380px){
   .bar-actions{gap:4px}
   .bar-actions .icon-btn,.icon-btn{width:42px;height:42px}
   .select{max-width:92px}
-  .scroll-dock .as-main{min-width:104px;padding:0 10px 0 8px}
-  .scroll-dock .as-main .as-rate{display:none}
+  .scroll-dock{gap:2px}
+  .scroll-dock .as-nav,.scroll-dock .as-nav.list{width:36px}
+}
+@media (max-width:340px){
+  .scroll-dock .as-main{min-width:0;padding:0 10px 0 8px}
+  .scroll-dock .as-step{width:32px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -1185,6 +1215,7 @@ dialog.share{width:min(460px, calc(100vw - 32px))}
 <button class="to-top" type="button" id="toTop" aria-label="맨 위로"></button>
 
 <div class="scroll-dock" id="scrollDock" role="toolbar" aria-label="기도문 이동과 자동 스크롤">
+  <button class="as-nav list" type="button" id="asList" aria-label="목록으로" title="목록으로"></button>
   <button class="as-nav prev" type="button" id="asPrev" aria-label="이전 기도"></button>
   <span class="as-sep" aria-hidden="true"></span>
   <div class="as-group" role="group" aria-label="자동 스크롤">
@@ -1331,6 +1362,10 @@ dialog.share{width:min(460px, calc(100vw - 32px))}
       </div>
 
       <div id="bgPhotoControls">
+        <label class="switch" for="cardPhotos" style="margin-top:16px">
+          <span class="switch-text"><b>오늘의 말씀·기도문 카드에도 이미지 넣기</b><small>배경 이미지 가운데 두 장을 골라 카드 배경으로 씁니다. 새로고침할 때마다 다시 고릅니다.</small></span>
+          <input type="checkbox" id="cardPhotos"><span class="switch-track" aria-hidden="true"></span>
+        </label>
         <div class="inline-row bg-photo-controls">
           <button class="btn" type="button" id="bgShuffle">다른 이미지로 바꾸기</button>
           <select class="select" id="bgInterval" aria-label="자동 전환 간격">
@@ -1493,7 +1528,7 @@ dialog.share{width:min(460px, calc(100vw - 32px))}
         </div>
         <div class="range-block">
           <div class="range-top"><label for="imScale">글자 크기</label><output id="imScaleOut" for="imScale"></output></div>
-          <input type="range" id="imScale" min="0.7" max="1.4" step="0.05">
+          <input type="range" id="imScale" min="0.3" max="1.4" step="0.05">
         </div>
         <div class="set-sub">글</div>
         <div class="segmented tight" role="radiogroup" aria-label="글 정렬" id="imAlignGroup" style="--n:2">
@@ -1838,12 +1873,16 @@ let settings = Object.assign({
   verseTr:'modern', versePool:'curated', verseCycle:'hour',
   todaySrc:'mix', todayApi:'',
   img:{ size:'mobile', bg:'current', blur:14, dim:0.38, scale:1, align:'left', title:true, date:true, name:true, mark:true },
+  todayOpen:true, cardPhotos:true,
   shareName:true, shareDate:false
 }, store.get(KEY_SET, {}) || {});
 if (!['mix','mine','builtin','api'].includes(settings.todaySrc)) settings.todaySrc = 'mix';
 if (typeof settings.todayApi !== 'string') settings.todayApi = '';
 settings.img = Object.assign({ size:'mobile', bg:'current', blur:14, dim:0.38, scale:1, align:'left', title:true, date:true, name:true, mark:true },
   settings.img && typeof settings.img === 'object' ? settings.img : {});
+settings.img.scale = Math.min(1.4, Math.max(0.3, Number(settings.img.scale) || 1));
+settings.todayOpen = settings.todayOpen !== false;
+settings.cardPhotos = settings.cardPhotos !== false;
 delete settings.categories;     // categories now live in public.prayer_categories
 settings.readSize = Math.min(SIZE_MAX, Math.max(SIZE_MIN, Number(settings.readSize) || 1.2));
 if (!['serif','sans'].includes(settings.readFont)) settings.readFont = 'serif';
@@ -2255,7 +2294,7 @@ function renderHeroIfHome(){ if (state.route && state.route.name === 'home') ren
 function watchDayChange(){
   setInterval(() => {
     if (cycleKey() !== verseState.key) loadDailyVerse();
-    if (todayState.key && kstNow().date !== todayState.key) { todayState.offset = 0; todayState.open = false; renderTodayIfHome(); }
+    if (todayState.key && kstNow().date !== todayState.key) { todayState.offset = 0; todayState.open = settings.todayOpen; renderTodayIfHome(); }
   }, 60000);
 }
 
@@ -2303,7 +2342,7 @@ const TODAY_PRAYERS = [
 ];
 
 const KEY_TODAY_API = 'prayer.v1.todayApiCache';
-const todayState = { key:'', offset:0, open:false, api:{ phase:'idle', url:'', key:'', data:null, error:'' }, apiRun:0, shown:null };
+const todayState = { key:'', offset:0, open:settings.todayOpen, api:{ phase:'idle', url:'', key:'', data:null, error:'' }, apiRun:0, shown:null };
 
 function renderTodayIfHome(){ if (state.route && state.route.name === 'home') renderToday(); }
 function builtinToday(h){
@@ -2313,7 +2352,7 @@ function builtinToday(h){
 /* Which prayer today: stable for the day (adding a prayer rarely changes it). */
 function pickToday(){
   const key = kstNow().date;
-  if (todayState.key !== key) { todayState.key = key; todayState.offset = 0; todayState.open = false; }
+  if (todayState.key !== key) { todayState.key = key; todayState.offset = 0; todayState.open = settings.todayOpen; }
   const seed = 'prayer-today-' + key + (todayState.offset ? ':' + todayState.offset : '');
   const h = hashStr(seed);
   let src = settings.todaySrc;
@@ -3251,7 +3290,7 @@ function setScrollCpm(v, { announce = false } = {}){
   autoScroll.recalc();
   autoScroll.ui();
   syncRange();
-  if (announce && !autoScroll.playing) toast(`읽는 속도: 1분에 ${settings.scrollCpm}자`, 'check');
+  if (announce && (!autoScroll.playing || window.matchMedia('(max-width:460px)').matches)) toast(`읽는 속도: 1분에 ${settings.scrollCpm}자`, 'check');
 }
 
 /* Reading progress line at the top of the reader */
@@ -4227,6 +4266,7 @@ function syncBgControls(){
   const dr = $('#dimRange'); dr.value = settings.bgDim; fillRange(dr);
   $('#dimOut').textContent = Math.round(settings.bgDim * 100) + '%';
   $$('#sceneGrid input').forEach(i => { i.checked = i.value === settings.scene; });
+  $('#cardPhotos').checked = settings.cardPhotos;
   $('#pickFolderBtn').hidden = !('webkitdirectory' in document.createElement('input')) || !window.matchMedia('(pointer:fine)').matches;
   renderBgStatus();
 }
@@ -4677,6 +4717,7 @@ function pickRandom(){
 }
 function showPhoto(url, tries = 0){
   if (!url) { hidePhotos(); return; }
+  bgE.pending = url;
   const tk = ++bgE.showToken;
   const img = new Image();
   img.onload = () => {
@@ -4703,6 +4744,38 @@ function hidePhotos(){
   $$('.bg-photo').forEach(l => l.classList.remove('on'));
   bgE.current = null;
   document.body.classList.remove('has-photo');
+}
+/* 오늘의 말씀 / 오늘의 기도문 카드 사진: 현재 배경 이미지 목록에서 무작위로 두 장(페이지 배경과 겹치지 않게).
+   한 번 고르면 그 접속 동안 유지하고, 새로고침하면 다시 고릅니다. */
+const cardPhotos = { hero:null, today:null, ready:new Set() };
+function pickCardPhotos(){
+  const L = settings.cardPhotos && settings.bgMode !== 'scene' ? bgE.list : [];
+  if (!L.length) { cardPhotos.hero = cardPhotos.today = null; applyCardPhotos(); return; }
+  const ok = u => !!u && L.includes(u);
+  if (!(ok(cardPhotos.hero) && ok(cardPhotos.today))) {
+    const bgNow = [bgE.current, bgE.pending];
+    let pool = L.filter(u => !bgNow.includes(u));
+    if (pool.length < 2) pool = L.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    cardPhotos.hero = pool[0];
+    cardPhotos.today = pool[1] || pool[0];
+  }
+  [cardPhotos.hero, cardPhotos.today].forEach(u => {
+    if (cardPhotos.ready.has(u)) return;
+    loadImage(u).then(() => { cardPhotos.ready.add(u); applyCardPhotos(); })
+      .catch(() => { if (cardPhotos.hero === u) cardPhotos.hero = null; if (cardPhotos.today === u) cardPhotos.today = null; applyCardPhotos(); });
+  });
+  applyCardPhotos();
+}
+function applyCardPhotos(){
+  [['#hero', cardPhotos.hero], ['#today', cardPhotos.today]].forEach(([sel, u]) => {
+    const el = $(sel);
+    if (!el) return;
+    const on = !!u && cardPhotos.ready.has(u);
+    if (on) el.style.setProperty('--card-img', `url("${u.replace(/["\\]/g, c => '\\' + c)}")`);
+    else el.style.removeProperty('--card-img');
+    el.classList.toggle('has-photo', on);
+  });
 }
 function stopBgTimer(){ if (bgE.timer) { clearInterval(bgE.timer); bgE.timer = null; } }
 function startBgTimer(){
@@ -4736,6 +4809,7 @@ async function refreshBackground({ rescan = false, reshuffle = false } = {}){
     bgE.list = [];
     hidePhotos();
     renderBgStatus();
+    pickCardPhotos();
     return;
   }
 
@@ -4778,6 +4852,7 @@ async function refreshBackground({ rescan = false, reshuffle = false } = {}){
   }
   startBgTimer();
   renderBgStatus();
+  pickCardPhotos();
 }
 async function silentRescan(tk){
   const folder = settings.bgFolder;
@@ -4791,6 +4866,7 @@ async function silentRescan(tk){
   else if (!bgE.list.includes(bgE.current)) showPhoto(pickRandom());
   startBgTimer();
   renderBgStatus();
+  pickCardPhotos();
 }
 
 /* ------------------------------------------------------------
@@ -5145,7 +5221,7 @@ const IMG_SIZES = [
   { id:'pc',      name:'PC',       w:1920, h:1080 },
   { id:'pcqhd',   name:'PC 고화질', w:2560, h:1440 }
 ];
-const imgState = { payload:null, page:0, pages:1, fileImg:null, srcCache:new Map(), token:0, timer:0 };
+const imgState = { payload:null, page:0, pages:1, fileImg:null, fileVer:0, srcCache:new Map(), token:0, timer:0, ready:null, prebuildTimer:0 };
 const canvasFilterOk = (() => {
   try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(2px)'; return c.filter === 'blur(2px)'; } catch (e) { return false; }
 })();
@@ -5175,8 +5251,8 @@ function openImageDialog(id, payload){
   $('#imShowTitle').checked = s.title; $('#imShowDate').checked = s.date;
   $('#imShowName').checked = s.name; $('#imShowMark').checked = s.mark;
   $('#imShowName').parentElement.hidden = !myName();
-  $('#imShareBtn').hidden = !(navigator.share && navigator.canShare);
-  $('.img-actions').style.gridTemplateColumns = $('#imShareBtn').hidden ? '1fr' : '';
+  imgState.ready = null;
+  updateImgButtons(1);
   openDlg($('#imgDlg'), $('#imTitle'));
   renderImagePreview();
 }
@@ -5215,7 +5291,9 @@ async function renderImagePreview(){
     note.textContent = [info.warn, info.pages > 1
       ? `글이 길어 ${info.pages}장으로 나누어 저장합니다. 한 장에 담으려면 ‘글자 크기’를 줄이거나 세로로 긴 크기를 고르세요.`
       : `${z.w}×${z.h} JPEG로 저장합니다.`].filter(Boolean).join(' ');
-    $('#imSaveBtn').innerHTML = icon('download', 18) + (info.pages > 1 ? `${info.pages}장 저장` : '저장');
+    updateImgButtons(info.pages);
+    if (saveHint()) note.textContent += ' ' + saveHint();
+    schedulePrebuild();
   } catch (e) {
     $('#imNote').textContent = '미리보기를 만들지 못했습니다.';
   }
@@ -5477,30 +5555,101 @@ function imageExportError(e){
   const tainted = e && (e.name === 'SecurityError' || /taint|insecure|security/i.test(String(e.message)));
   toast(tainted ? '이 배경 이미지는 다른 사이트에 있어 저장할 수 없습니다. ‘사진 선택’이나 ‘기본 장면’을 골라 주세요.' : '이미지를 만들지 못했습니다. 다시 시도해 주세요.', 'info');
 }
-async function saveImages(){
-  const btn = $('#imSaveBtn');
+/* Where a saved picture ends up on phones
+   · iPhone/iPad: a web page cannot write into the Photos app directly, and a normal download goes
+     to the Files app. The share sheet can, though: its "이미지 저장" puts the picture in Photos.
+     So on iOS the main button opens the share sheet (with the images already prepared, because
+     Safari only allows it right after the tap), and "파일로 저장" keeps the old download.
+   · Android: a download goes to the Download folder, which the Gallery / Google Photos show as the
+     "Download" album — so the main button stays a normal download there. */
+const IS_IOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(navigator.userAgent);
+const CAN_SHARE_FILES = (() => {
+  try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files:[new File([new Blob(['x'], { type:'image/jpeg' })], 'x.jpg', { type:'image/jpeg' })] })); }
+  catch (e) { return false; }
+})();
+const imgMode = () => (IS_IOS && CAN_SHARE_FILES) ? 'ios' : IS_ANDROID ? 'android' : 'desktop';
+function updateImgButtons(pages = imgState.pages){
+  const n = pages > 1 ? `${pages}장 ` : '';
+  const mode = imgMode();
+  const pri = $('#imSaveBtn'), sec = $('#imShareBtn');
+  if (pri.getAttribute('aria-busy') || sec.getAttribute('aria-busy')) return;
+  if (mode === 'ios') {
+    pri.innerHTML = icon('image', 18) + `${n}사진에 저장`;
+    sec.innerHTML = icon('download', 18) + '파일로 저장';
+    sec.hidden = false;
+  } else {
+    pri.innerHTML = icon('download', 18) + `${n}저장`;
+    sec.innerHTML = icon('share', 18) + '공유';
+    sec.hidden = !CAN_SHARE_FILES;
+  }
+  $('.img-actions').style.gridTemplateColumns = sec.hidden ? '1fr' : '';
+}
+function saveHint(){
+  const mode = imgMode();
+  if (mode === 'ios') return '‘사진에 저장’을 누르고 공유 메뉴에서 ‘이미지 저장’을 고르면 사진 앱에 저장됩니다.';
+  if (mode === 'android') return '저장한 이미지는 갤러리(사진) 앱의 ‘Download’ 앨범에서 볼 수 있습니다.';
+  return '';
+}
+/* Everything that changes the picture; prepared files are reused only while this matches. */
+function imgSig(){
+  const P = imgState.payload || {};
+  return JSON.stringify([settings.img, P.title, P.content, P.date, P.cats, bgE.current, imgState.fileVer, settings.scene,
+    settings.readFont, settings.lineHeight, myName()]);
+}
+function schedulePrebuild(){
+  clearTimeout(imgState.prebuildTimer);
+  if (imgMode() === 'desktop' || !CAN_SHARE_FILES) return;
+  imgState.prebuildTimer = setTimeout(async () => {
+    const sig = imgSig();
+    if (imgState.ready && imgState.ready.sig === sig) return;
+    try { const files = await buildImageFiles(); if (imgSig() === sig) imgState.ready = { sig, files }; } catch (e) {}
+  }, 450);
+}
+async function preparedFiles(){
+  const sig = imgSig();
+  if (imgState.ready && imgState.ready.sig === sig) return { files: imgState.ready.files, fresh: false };
+  const files = await buildImageFiles();
+  imgState.ready = { sig, files };
+  return { files, fresh: true };
+}
+async function downloadImages(btn){
   setBusy(btn, true, '만드는 중…');
   try {
-    const files = await buildImageFiles();
+    const { files } = await preparedFiles();
     for (let i = 0; i < files.length; i++) {
       downloadBlob(files[i], files[i].name);
       if (i < files.length - 1) await sleep(450);
     }
-    toast(files.length > 1 ? `이미지 ${files.length}장을 저장했습니다` : '이미지를 저장했습니다', 'check');
+    const tail = imgMode() === 'android' ? ' 갤러리의 Download 앨범에서 볼 수 있습니다.' : imgMode() === 'ios' ? ' 파일 앱의 다운로드 폴더에 있습니다.' : '';
+    toast((files.length > 1 ? `이미지 ${files.length}장을 저장했습니다.` : '이미지를 저장했습니다.') + tail, tail ? 'info' : 'check');
   } catch (e) { imageExportError(e); }
-  finally { setBusy(btn, false); }
+  finally { setBusy(btn, false); updateImgButtons(); }
 }
-async function shareImages(){
-  const btn = $('#imShareBtn');
+async function shareImageFiles(btn, { toPhotos = false } = {}){
+  let fresh = false;
   setBusy(btn, true, '준비 중…');
   try {
-    const files = await buildImageFiles();
+    const got = await preparedFiles();
+    fresh = got.fresh;
+    const files = got.files;
     if (!navigator.canShare || !navigator.canShare({ files })) { toast('이 브라우저는 이미지 공유를 지원하지 않습니다. 저장한 뒤 보내 주세요.', 'info'); return; }
-    await navigator.share({ files, title: imgState.payload.title });
+    if (toPhotos) toast(files.length > 1 ? `공유 메뉴에서 ‘이미지 ${files.length}개 저장’을 누르세요` : '공유 메뉴에서 ‘이미지 저장’을 누르세요', 'info');
+    await navigator.share(toPhotos ? { files } : { files, title: imgState.payload.title });
   } catch (e) {
     if (e && e.name === 'AbortError') return;
+    // Safari refuses the share sheet if preparing took too long after the tap; the files are ready now.
+    if (e && e.name === 'NotAllowedError' && fresh) { toast('이미지가 준비되었습니다. 한 번 더 눌러 주세요.', 'info'); return; }
     imageExportError(e);
-  } finally { setBusy(btn, false); }
+  } finally { setBusy(btn, false); updateImgButtons(); }
+}
+function imgPrimary(){
+  const btn = $('#imSaveBtn');
+  if (imgMode() === 'ios') shareImageFiles(btn, { toPhotos:true }); else downloadImages(btn);
+}
+function imgSecondary(){
+  const btn = $('#imShareBtn');
+  if (imgMode() === 'ios') downloadImages(btn); else shareImageFiles(btn);
 }
 
 /* ------------------------------------------------------------
@@ -5581,6 +5730,7 @@ function setupStatic(){
   $('#rdEdit').innerHTML = icon('edit', 19);
   $('#rdDelete').innerHTML = icon('trash', 19);
   $('#rdCopy').innerHTML = icon('copy', 16) + '복사';
+  $('#asList').innerHTML = icon('rows', 18) + '<span class="as-nav-label">목록</span>';
   $('#rdImage').innerHTML = icon('image', 16) + '이미지';
   $('#rdShare').innerHTML = icon('send', 16) + '보내기';
   $('#pfClose').innerHTML = icon('x', 18);
@@ -5680,11 +5830,11 @@ function bindEvents(){
       else if (a === 'verse-next') nextVerse();
       else if (a === 'verse-copy') copyVerse();
       else if (a === 'today-next') {
-        todayState.offset++; todayState.open = false;
+        todayState.offset++; todayState.open = settings.todayOpen;
         if (settings.todaySrc === 'api') toast('외부 주소의 기도문은 하루에 하나입니다. 설정에서 출처를 바꿀 수 있습니다.', 'info');
         renderToday();
       }
-      else if (a === 'today-toggle') { todayState.open = !todayState.open; renderToday(); }
+      else if (a === 'today-toggle') { todayState.open = !todayState.open; settings.todayOpen = todayState.open; saveSettings(); renderToday(); }
       else if (a === 'today-copy') {
         const tp = todayPayload();
         if (tp) copyText(`${tp.title}\n\n${tp.content}`).then(ok => toast(ok ? '오늘의 기도문을 복사했습니다' : '복사하지 못했습니다', ok ? 'check' : 'info'));
@@ -5754,6 +5904,7 @@ function bindEvents(){
   ['#rdPrev', '#rdNext', '#asPrev', '#asNext'].forEach(sel => {
     $(sel).addEventListener('click', e => goSibling(e.currentTarget.dataset.id));
   });
+  $('#asList').addEventListener('click', () => { autoScroll.stop(); goBack('#/'); });
   $('#rdImage').addEventListener('click', () => openImageDialog(state.route.id));
   $('#rdShare').addEventListener('click', () => openShareDialog(state.route.id));
 
@@ -5872,6 +6023,11 @@ function bindEvents(){
     $('#blurOut').textContent = settings.bgBlur + 'px';
     applyBgVars(); saveSettings();
   });
+  $('#cardPhotos').addEventListener('change', e => {
+    settings.cardPhotos = e.target.checked; saveSettings();
+    cardPhotos.hero = cardPhotos.today = null;
+    pickCardPhotos();
+  });
   $('#dimRange').addEventListener('input', e => {
     settings.bgDim = Math.round(Number(e.target.value) * 100) / 100; fillRange(e.target);
     $('#dimOut').textContent = Math.round(settings.bgDim * 100) + '%';
@@ -5969,7 +6125,7 @@ function bindEvents(){
   $('#todaySrcGroup').addEventListener('change', e => {
     if (e.target.name !== 'todaySrc') return;
     settings.todaySrc = e.target.value; saveSettings();
-    todayState.offset = 0; todayState.open = false;
+    todayState.offset = 0; todayState.open = settings.todayOpen;
     if (settings.todaySrc === 'api') loadTodayApi(); else { renderTodayIfHome(); renderTodayInfo(); }
   });
   const applyTodayApi = () => {
@@ -6027,6 +6183,7 @@ function bindEvents(){
     const src = URL.createObjectURL(f);
     try {
       imgState.fileImg = await loadImage(src);
+      imgState.fileVer++;
       settings.img.bg = 'file'; saveSettings();
       $$('#imBgGroup input').forEach(i => { i.checked = i.value === 'file'; });
       scheduleImagePreview();
@@ -6044,8 +6201,8 @@ function bindEvents(){
     $(id).addEventListener('change', e => { settings.img[key] = e.target.checked; saveSettings(); imgState.page = 0; scheduleImagePreview(); }));
   $('#imPrevPage').addEventListener('click', () => { if (imgState.page > 0) { imgState.page--; renderImagePreview(); } });
   $('#imNextPage').addEventListener('click', () => { if (imgState.page < imgState.pages - 1) { imgState.page++; renderImagePreview(); } });
-  $('#imSaveBtn').addEventListener('click', saveImages);
-  $('#imShareBtn').addEventListener('click', shareImages);
+  $('#imSaveBtn').addEventListener('click', imgPrimary);
+  $('#imShareBtn').addEventListener('click', imgSecondary);
 
   // Share dialog
   const shDlg = $('#shareDlg');
