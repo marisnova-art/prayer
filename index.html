@@ -64,9 +64,12 @@
   --read-size: 1.2rem;
   --read-lh: 1.8;
 
-  /* opaque panels (no backdrop-filter — cheap to scroll on phones) */
-  --panel: linear-gradient(160deg, rgba(40,58,49,.72), rgba(20,32,26,.78));
-  --panel-hover: linear-gradient(160deg, rgba(52,72,62,.78), rgba(24,38,31,.82));
+  /* clear glass panels — the same light as 오늘의 말씀, but without backdrop-filter
+     (the background is already blurred, so hundreds of cards still scroll smoothly) */
+  --panel: linear-gradient(155deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.085) 46%, rgba(255,255,255,.055) 100%);
+  --panel-hover: linear-gradient(155deg, rgba(255,255,255,.25) 0%, rgba(255,255,255,.12) 46%, rgba(255,255,255,.075) 100%);
+  --panel-border: rgba(255,255,255,.24);
+  --panel-edge: inset 0 1px 0 rgba(255,255,255,.26);
   --bar-bg: rgba(10,18,14,.9);
 
   --ease: cubic-bezier(.2,.7,.2,1);
@@ -239,16 +242,40 @@ body.has-photo .bg-veil{
   display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);
   gap:clamp(24px,2.6vw,44px);align-items:start;
 }
-.hero-col{position:sticky;top:24px;min-width:0}
+/* The column sticks at the top while it fits; when it is taller than the window,
+   JS gives it a negative `top` so its bottom edge stays in view instead (fitHeroCol). */
+.hero-col{position:sticky;top:24px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .list-col{min-width:0}
 
 /* ---- 오늘의 말씀 card ---- */
 .hero{
   display:flex;flex-direction:column;
   padding:28px 30px 24px;
-  min-height:min(700px, calc(100vh - 140px));
+  min-height:min(430px, calc(100vh - 470px));
   overflow:hidden;
 }
+
+/* ---- 오늘의 기도문 card ---- */
+.today{padding:24px 28px 20px;overflow:hidden}
+.today-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.today-src{font-size:.72rem;color:var(--text-3);letter-spacing:.02em}
+.today-title{position:relative;z-index:1;margin:16px 0 10px;font-size:1.14rem;font-weight:500;line-height:1.45;letter-spacing:-.012em}
+.today-body{
+  position:relative;z-index:1;margin:0;font-family:var(--font-read);font-size:.98rem;line-height:1.82;color:rgba(255,255,255,.9);
+  max-height:calc(1.82em * 6);overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 62%, transparent);mask-image:linear-gradient(#000 62%, transparent);
+  transition:max-height .45s var(--ease);
+}
+.today-body p{margin:0 0 .7em;white-space:pre-wrap}
+.today-body p:last-child{margin-bottom:0}
+.today.open .today-body{max-height:none;-webkit-mask-image:none;mask-image:none}
+.today.short .today-body{-webkit-mask-image:none;mask-image:none}
+.today-foot{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
+.today-foot .btn{min-height:40px;padding:0 14px;font-size:.86rem}
+.today-foot .btn-quiet{padding:0 10px 0 8px;gap:4px}
+.today .skel{height:13px;margin-bottom:11px}
+.today .note{font-size:.8rem;color:var(--text-3);margin:8px 0 0}
+.today-foot-src{margin-left:auto;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hero.intro{animation:heroIn 1.2s var(--ease) both}
 @keyframes heroIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 .hero-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -259,9 +286,9 @@ body.has-photo .bg-veil{
 
 .hero-cross{
   position:relative;flex:1 0 auto;display:grid;place-items:center;
-  min-height:200px;margin:6px 0 4px;pointer-events:none;
+  min-height:150px;margin:6px 0 4px;pointer-events:none;
 }
-.hero-cross svg{width:clamp(96px,9vw,132px);height:auto;overflow:visible}
+.hero-cross svg{width:clamp(84px,7.4vw,112px);height:auto;overflow:visible}
 .cross-halo{transform-origin:60px 52px;animation:halo 7s ease-in-out infinite}
 .cross-rays{transform-origin:60px 52px;animation:rays 60s linear infinite}
 .cross-core{animation:core 7s ease-in-out infinite}
@@ -353,13 +380,18 @@ body.has-photo .bg-veil{
   position:relative;display:flex;flex-direction:column;gap:10px;min-height:196px;
   padding:20px 20px 18px;border-radius:var(--r-lg);
   background:var(--panel);
-  border:1px solid var(--glass-border-soft);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
-  transition:background .2s,border-color .2s;
+  border:1px solid var(--panel-border);
+  box-shadow:0 22px 44px -30px rgba(0,0,0,.55), var(--panel-edge);
+  transition:background .2s,border-color .2s,transform .25s var(--ease);
   content-visibility:auto;contain-intrinsic-size:auto 200px;
+  text-shadow:0 1px 10px rgba(0,0,0,.18);
 }
-@media (hover:hover){.card:hover{background:var(--panel-hover);border-color:rgba(255,255,255,.28)}}
-.card:focus-within{border-color:rgba(255,255,255,.55)}
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(90% 70% at 0% 0%, rgba(255,255,255,.1), rgba(255,255,255,0) 62%);
+}
+@media (hover:hover){.card:hover{background:var(--panel-hover);border-color:rgba(255,255,255,.36);transform:translateY(-2px)}}
+.card:focus-within{border-color:rgba(255,255,255,.6)}
 .card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0}
 .card-cats{display:flex;gap:5px;min-width:0;overflow:hidden}
 .card-cats .more{font-size:.72rem;color:var(--text-4);align-self:center;white-space:nowrap}
@@ -375,23 +407,26 @@ body.has-photo .bg-veil{
 .card-link{color:inherit;text-decoration:none;outline:none}
 .card-link::after{content:"";position:absolute;inset:0;border-radius:inherit}
 .card-excerpt{
-  margin:0;font-family:var(--font-read);font-size:.93rem;line-height:1.72;color:var(--text-3);
+  margin:0;font-family:var(--font-read);font-size:.93rem;line-height:1.72;color:rgba(255,255,255,.76);
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
-.card-foot{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:12px;font-size:.78rem;color:var(--text-4)}
+.card-foot{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:12px;font-size:.78rem;color:rgba(255,255,255,.56)}
+.card .star{color:rgba(255,255,255,.55)}
+.card .star[aria-pressed="true"]{color:var(--amber)}
 .card-tags{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
 mark{background:var(--amber-soft);color:#fff;border-radius:3px;padding:0 1px}
 
 /* ---- compact list view ---- */
 .list.compact{grid-template-columns:1fr;gap:0;border-radius:var(--r-lg);overflow:hidden;
-  background:var(--panel);border:1px solid var(--glass-border-soft)}
+  background:var(--panel);border:1px solid var(--panel-border);box-shadow:var(--panel-edge)}
 .list.compact .card{
   min-height:0;flex-direction:row;align-items:center;gap:14px;padding:14px 16px 14px 18px;border-radius:0;
-  background:none;border:0;border-top:1px solid rgba(255,255,255,.07);box-shadow:none;
+  background:none;border:0;border-top:1px solid rgba(255,255,255,.1);box-shadow:none;
   contain-intrinsic-size:auto 68px;
 }
+.list.compact .card::before{display:none}
 .list.compact .card:first-child{border-top:0}
-@media (hover:hover){.list.compact .card:hover{background:rgba(255,255,255,.06)}}
+@media (hover:hover){.list.compact .card:hover{background:rgba(255,255,255,.08);transform:none}}
 .list.compact .card-top{order:3;flex-shrink:0}
 .list.compact .card-cats{display:none}
 .list.compact .card-body{flex:1;min-width:0}
@@ -459,7 +494,7 @@ body:not([data-view="read"]) .read-progress{display:none}
 .read-end{margin:34px 0 0;height:1px;max-width:36em;background:linear-gradient(90deg, rgba(255,255,255,.2), rgba(255,255,255,0))}
 
 .read-side{display:flex;flex-direction:column;gap:14px;min-width:0}
-.side-card{padding:20px 20px;border-radius:var(--r-lg);background:var(--panel);border:1px solid var(--glass-border-soft)}
+.side-card{padding:20px 20px;border-radius:var(--r-lg);background:var(--panel);border:1px solid var(--panel-border);box-shadow:var(--panel-edge)}
 .side-title{margin:0 0 12px;font-size:.78rem;font-weight:500;color:var(--text-3);letter-spacing:.02em}
 .read-tags{display:flex;flex-wrap:wrap;gap:8px}
 .tag-btn{
@@ -468,7 +503,7 @@ body:not([data-view="read"]) .read-progress{display:none}
 }
 @media (hover:hover){.tag-btn:hover{background:rgba(255,255,255,.12);color:#fff}}
 .read-memo p{margin:0;white-space:pre-wrap;color:var(--text-2);font-size:.95rem;line-height:1.75}
-.tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .tool-grid .mini-btn{min-width:0;padding:0 6px;gap:4px}
 .mini-btn{
   display:inline-flex;align-items:center;gap:6px;height:42px;min-width:46px;padding:0 12px;justify-content:center;
@@ -481,7 +516,7 @@ body:not([data-view="read"]) .read-progress{display:none}
 .read-nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .nav-btn{
   display:flex;flex-direction:column;gap:3px;min-height:74px;padding:15px 18px;text-align:left;min-width:0;
-  border-radius:var(--r-lg);border:1px solid var(--glass-border-soft);
+  border-radius:var(--r-lg);border:1px solid var(--panel-border);box-shadow:var(--panel-edge);
   background:var(--panel);transition:background .2s,border-color .2s;
 }
 @media (hover:hover){.nav-btn:hover:not(:disabled){border-color:rgba(255,255,255,.3);background:var(--panel-hover)}}
@@ -491,24 +526,39 @@ body:not([data-view="read"]) .read-progress{display:none}
 .nav-btn:disabled{opacity:.4;cursor:default}
 
 /* auto-scroll dock */
+/* Dock: [‹ 이전]  |  ( −  ▶ 자동 스크롤  + )  |  [다음 ›]
+   The scroll controls sit in their own inset capsule; the prayer-to-prayer buttons are
+   plain text links outside dividers, so the two jobs never look like one row of buttons. */
 .scroll-dock{
   position:fixed;z-index:40;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));
-  display:flex;align-items:center;gap:4px;padding:5px;border-radius:var(--r-pill);
-  background:rgba(12,21,17,.97);border:1px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:var(--r-pill);
+  background:rgba(12,21,17,.94);border:1px solid rgba(255,255,255,.2);
   box-shadow:0 18px 44px -16px rgba(0,0,0,.8);white-space:nowrap;
   transform:translateX(-50%);transition:opacity .3s,transform .3s var(--ease);
 }
 body:not([data-view="read"]) .scroll-dock{display:none}
 .scroll-dock button{
   height:44px;border:0;border-radius:var(--r-pill);background:none;color:var(--text-2);
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,color .2s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,color .2s,opacity .2s;
 }
-.scroll-dock .as-step{width:44px;font-size:1.25rem;line-height:1}
-.scroll-dock .as-main{padding:0 18px 0 14px;font-size:.9rem;font-weight:500;color:#fff;min-width:150px}
+.as-group{display:flex;align-items:center;gap:2px;padding:2px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
+.scroll-dock .as-group button{height:40px}
+.scroll-dock .as-step{width:40px;font-size:1.2rem;line-height:1}
+.scroll-dock .as-main{padding:0 16px 0 12px;font-size:.9rem;font-weight:500;color:#fff;min-width:146px}
 .scroll-dock .as-main .as-rate{font-size:.76rem;color:var(--text-3);font-weight:400;font-variant-numeric:tabular-nums}
-@media (hover:hover){.scroll-dock button:hover{background:rgba(255,255,255,.1)}}
+.as-sep{width:1px;height:22px;background:rgba(255,255,255,.16);flex-shrink:0}
+.scroll-dock .as-nav{gap:3px;padding:0 12px 0 8px;font-size:.8rem;color:var(--text-3)}
+.scroll-dock .as-nav.next{padding:0 8px 0 12px}
+.scroll-dock .as-nav:disabled{opacity:.28;cursor:default}
+@media (hover:hover){
+  .scroll-dock button:hover:not(:disabled){background:rgba(255,255,255,.1);color:#fff}
+}
 .scroll-dock.playing .as-main{background:var(--light-fill);color:var(--ink)}
+@media (hover:hover){.scroll-dock.playing .as-main:hover{background:#fff;color:var(--ink)}}
 .scroll-dock.playing .as-main .as-rate{color:rgba(16,32,26,.6)}
+/* smooth auto-scroll: the fractional pixel is carried by a 2D transform (kept off a
+   separate GPU layer on purpose, so the text is redrawn crisp at every sub-pixel step) */
 body.autoscrolling .scroll-dock{opacity:.55}
 body.autoscrolling .scroll-dock:hover,body.autoscrolling .scroll-dock:focus-within{opacity:1}
 body.autoscrolling #view-read .bar{opacity:.35;transition:opacity .4s}
@@ -730,6 +780,84 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 .sheet-handle{display:none}
 
 /* ============================================================
+   Profile
+   ============================================================ */
+.avatar-btn{
+  width:46px;height:46px;border-radius:50%;padding:0;overflow:hidden;flex-shrink:0;
+  border:1px solid var(--glass-border);background:rgba(255,255,255,.08);color:var(--text-2);
+  display:grid;place-items:center;transition:border-color .2s, box-shadow .2s;
+}
+@media (hover:hover){.avatar-btn:hover{border-color:rgba(255,255,255,.55);box-shadow:0 0 0 3px rgba(255,255,255,.08)}}
+.avatar-btn img,.avatar-big img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar-initial{font-size:1.02rem;font-weight:600;color:#fff;letter-spacing:-.02em}
+.avatar-btn.empty{border-style:dashed}
+dialog.profile{width:min(520px, calc(100vw - 32px))}
+.profile-head{display:flex;align-items:center;gap:18px;margin:14px 0 22px}
+.avatar-big{
+  width:96px;height:96px;border-radius:50%;overflow:hidden;flex-shrink:0;display:grid;place-items:center;
+  background:rgba(255,255,255,.08);border:1px solid var(--glass-border);color:var(--text-3);
+  box-shadow:0 14px 34px -18px rgba(0,0,0,.7);
+}
+.avatar-big .avatar-initial{font-size:2.2rem;font-weight:500}
+.profile-photo-btns{display:flex;flex-wrap:wrap;gap:8px}
+.profile-photo-btns .btn{min-height:40px;padding:0 16px;font-size:.86rem}
+.profile-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:26px}
+.profile-foot .modal-actions{margin-left:auto}
+
+/* ============================================================
+   Save as image / send
+   ============================================================ */
+dialog.imgdlg{width:min(1060px, calc(100vw - 32px))}
+.img-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start;margin-top:10px}
+.img-stage{
+  position:sticky;top:0;display:flex;align-items:center;justify-content:center;min-height:260px;height:min(64vh,640px);
+  border-radius:var(--r-md);background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);padding:14px;overflow:hidden;
+}
+.img-stage canvas{display:block;flex:none;border-radius:6px;box-shadow:0 18px 40px -16px rgba(0,0,0,.8);background:#0c1712}
+.img-pager{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;font-size:.84rem;color:var(--text-2)}
+.img-pager .icon-btn{width:38px;height:38px}
+.img-controls .set-sub:first-child{margin-top:0}
+.size-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.size-opt{position:relative;cursor:pointer}
+.size-opt input{position:absolute;opacity:0;pointer-events:none}
+.size-opt span{
+  display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 9px;border-radius:14px;
+  border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.05);font-size:.8rem;color:var(--text-2);text-align:center;line-height:1.25;
+  transition:background .15s,border-color .15s;
+}
+.size-opt small{font-size:.68rem;color:var(--text-4);font-variant-numeric:tabular-nums}
+.size-opt i{display:block;border:1.5px solid currentColor;border-radius:3px;opacity:.75}
+.size-opt input:checked + span{background:var(--light-fill);color:var(--ink);border-color:transparent}
+.size-opt input:checked + span small{color:rgba(16,32,26,.6)}
+.size-opt input:focus-visible + span{outline:2px solid #fff;outline-offset:2px}
+.check-row{display:flex;flex-wrap:wrap;gap:6px}
+.check-row label{position:relative}
+.check-row input{position:absolute;opacity:0;pointer-events:none}
+.check-row span{
+  display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 13px;border-radius:var(--r-pill);cursor:pointer;
+  border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.05);font-size:.84rem;color:var(--text-2);
+}
+.check-row input:checked + span{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5);color:#fff}
+.check-row input:checked + span::before{content:"✓";font-size:.78rem}
+.check-row input:focus-visible + span{outline:2px solid #fff;outline-offset:2px}
+.img-note{margin:10px 0 0;font-size:.8rem;color:var(--text-3);line-height:1.55;min-height:1.2em}
+.img-note.warn{color:var(--amber)}
+.img-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+.img-actions .btn{width:100%}
+dialog.share{width:min(460px, calc(100vw - 32px))}
+.share-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.share-item{
+  display:flex;align-items:center;gap:14px;width:100%;min-height:62px;padding:10px 16px;text-align:left;
+  border-radius:var(--r-md);border:1px solid var(--glass-border-soft);background:rgba(255,255,255,.06);color:#fff;
+  transition:background .2s,border-color .2s;
+}
+@media (hover:hover){.share-item:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)}}
+.share-item .si-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);flex-shrink:0}
+.share-item b{display:block;font-weight:500;font-size:.95rem}
+.share-item small{display:block;font-size:.78rem;color:var(--text-3);line-height:1.45}
+.share-opts{margin-top:16px}
+
+/* ============================================================
    Wide screens — use the space
    ============================================================ */
 @media (min-width:1100px){
@@ -753,6 +881,13 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
   .hero-col{position:static}
   .hero{min-height:auto}
   .hero-cross{min-height:150px}
+}
+@media (max-width:1023px) and (min-width:720px){
+  .hero-col{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+}
+@media (max-width:860px){
+  .img-layout{grid-template-columns:minmax(0,1fr)}
+  .img-stage{position:static;height:min(46vh,520px)}
 }
 @media (max-width:719px){
   :root{--blur:18px;--blur-sm:10px}
@@ -817,10 +952,21 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
   .read-rule{margin:20px 0 22px}
   .read-body{max-width:none}
   .side-card{padding:18px 16px}
-  .tool-grid{grid-template-columns:repeat(4,1fr)}
+  .tool-grid{grid-template-columns:repeat(3,1fr)}
   .read-nav{gap:10px}
   .nav-btn{padding:13px 15px;min-height:66px}
-  .scroll-dock .as-main{min-width:132px;padding:0 14px 0 12px}
+  .scroll-dock{gap:4px;padding:4px 5px}
+  .scroll-dock .as-main{min-width:118px;padding:0 12px 0 10px;font-size:.86rem}
+  .scroll-dock .as-step{width:36px}
+  .scroll-dock .as-nav{width:40px;padding:0}
+  .scroll-dock .as-nav.next{padding:0}
+  .scroll-dock .as-nav-label{display:none}
+  .as-sep{height:18px}
+
+  /* home: 오늘의 기도문 */
+  .today{padding:18px 20px 16px;border-radius:26px}
+  .today-title{margin:12px 0 8px;font-size:1.06rem}
+  .today-body{font-size:.95rem;max-height:calc(1.82em * 5)}
 
   /* editor: actions live in the top bar, never over the text you type */
   .edit-bar{
@@ -843,16 +989,23 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
   .sheet-handle{display:block;width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.3);margin:-14px auto 14px}
   .bg-photo-controls > *{flex:1 1 100% !important}
   .inline-row .btn{flex:1 1 auto}
-  dialog.settings{width:100%;margin:auto 0 0;max-height:92vh}
-  dialog.settings .modal-panel{border-radius:26px 26px 0 0;max-height:92vh;padding:24px 20px calc(28px + env(safe-area-inset-bottom))}
-  dialog.settings .modal-panel::after{border-radius:0;bottom:calc(-28px - env(safe-area-inset-bottom));margin-bottom:calc(-28px - env(safe-area-inset-bottom))}
+  dialog.settings,dialog.profile,dialog.imgdlg,dialog.share{width:100%;margin:auto 0 0;max-height:92vh}
+  dialog.settings .modal-panel,dialog.profile .modal-panel,dialog.imgdlg .modal-panel,dialog.share .modal-panel{border-radius:26px 26px 0 0;max-height:92vh;padding:24px 20px calc(28px + env(safe-area-inset-bottom))}
+  dialog.settings .modal-panel::after,dialog.profile .modal-panel::after,dialog.imgdlg .modal-panel::after,dialog.share .modal-panel::after{border-radius:0;bottom:calc(-28px - env(safe-area-inset-bottom));margin-bottom:calc(-28px - env(safe-area-inset-bottom))}
+  .topbar-actions{gap:8px}
+  .avatar-btn{width:40px;height:40px}
+  .profile-head{gap:14px}
+  .avatar-big{width:80px;height:80px}
+  .img-actions{position:sticky;bottom:calc(-28px - env(safe-area-inset-bottom));z-index:4;margin:18px -20px calc(-28px - env(safe-area-inset-bottom));
+    padding:12px 20px calc(14px + env(safe-area-inset-bottom));background:rgba(14,26,20,.96);border-top:1px solid rgba(255,255,255,.1)}
   .segmented span{font-size:.84rem}
 }
 @media (max-width:380px){
   .bar-actions{gap:4px}
   .bar-actions .icon-btn,.icon-btn{width:42px;height:42px}
   .select{max-width:92px}
-  .tool-grid{grid-template-columns:repeat(2,1fr)}
+  .scroll-dock .as-main{min-width:104px;padding:0 10px 0 8px}
+  .scroll-dock .as-main .as-rate{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -879,6 +1032,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
     </a>
     <div class="topbar-actions">
       <button class="sync-pill" type="button" id="syncPill" data-state="busy" aria-live="polite"><span class="sync-dot" aria-hidden="true"></span><span class="sync-text">연결 중…</span></button>
+      <button class="avatar-btn empty" type="button" data-action="profile" id="btnProfile" aria-label="프로필 만들기" title="프로필"></button>
       <button class="icon-btn" type="button" data-action="settings" aria-label="설정" id="btnSettings"></button>
       <button class="btn btn-primary btn-new-top" type="button" data-action="new" id="btnNewTop"></button>
     </div>
@@ -890,6 +1044,7 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
       <div class="home-grid">
         <aside class="hero-col">
           <article class="hero glass" id="hero" aria-live="polite"></article>
+          <article class="today glass" id="today" aria-label="오늘의 기도문"></article>
         </aside>
         <div class="list-col">
           <div class="list-head-sentinel" id="listHeadSentinel" aria-hidden="true"></div>
@@ -959,6 +1114,8 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
                 <button class="mini-btn" type="button" id="rdLarger" aria-label="글자 크게">가+</button>
                 <button class="mini-btn" type="button" id="rdFont" aria-label="글꼴 바꾸기"></button>
                 <button class="mini-btn" type="button" id="rdCopy"></button>
+                <button class="mini-btn" type="button" id="rdImage" aria-label="글과 배경을 이미지로 저장"></button>
+                <button class="mini-btn" type="button" id="rdShare" aria-label="기도문 보내기"></button>
               </div>
               <p class="read-updated" id="rdUpdated"></p>
             </div>
@@ -1027,10 +1184,16 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
 <button class="fab" type="button" data-action="new" id="fab"></button>
 <button class="to-top" type="button" id="toTop" aria-label="맨 위로"></button>
 
-<div class="scroll-dock" id="scrollDock" role="group" aria-label="자동 스크롤">
-  <button class="as-step" type="button" id="asSlower" aria-label="더 천천히" title="더 천천히">−</button>
-  <button class="as-main" type="button" id="asToggle" aria-pressed="false"></button>
-  <button class="as-step" type="button" id="asFaster" aria-label="더 빠르게" title="더 빠르게">+</button>
+<div class="scroll-dock" id="scrollDock" role="toolbar" aria-label="기도문 이동과 자동 스크롤">
+  <button class="as-nav prev" type="button" id="asPrev" aria-label="이전 기도"></button>
+  <span class="as-sep" aria-hidden="true"></span>
+  <div class="as-group" role="group" aria-label="자동 스크롤">
+    <button class="as-step" type="button" id="asSlower" aria-label="더 천천히" title="더 천천히">−</button>
+    <button class="as-main" type="button" id="asToggle" aria-pressed="false"></button>
+    <button class="as-step" type="button" id="asFaster" aria-label="더 빠르게" title="더 빠르게">+</button>
+  </div>
+  <span class="as-sep" aria-hidden="true"></span>
+  <button class="as-nav next" type="button" id="asNext" aria-label="다음 기도"></button>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastIcon"></span><span id="toastText"></span></div>
@@ -1111,6 +1274,26 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
         <button class="btn" type="button" id="verseClear">받아 둔 말씀 지우기</button>
       </div>
       <p class="set-note">현대어는 개역한글을 오늘의 말로 옮긴 <a href="https://github.com/cameleonh/open-korean-bible" target="_blank" rel="noopener">Open Korean Bible</a>(기완, CC BY 4.0)을 씁니다. 아직 현대어로 옮겨지지 않은 곳(시편·잠언·이사야 등)이나 말투가 지나치게 가벼운 곳은 개역한글로 보여 줍니다. 성경 본문은 파일에 들어 있지 않고, 그날의 말씀이 속한 책 한 권만 내려받아 이 브라우저에 보관합니다.</p>
+    </section>
+
+    <section class="set-section">
+      <h3 class="set-title">오늘의 기도문</h3>
+      <div class="set-sub" style="margin-top:0">가져오는 곳</div>
+      <div class="segmented" role="radiogroup" aria-label="오늘의 기도문 출처" id="todaySrcGroup" style="--n:4">
+        <label><input type="radio" name="todaySrc" value="mix"><span>섞어서</span></label>
+        <label><input type="radio" name="todaySrc" value="mine"><span>내 기도문</span></label>
+        <label><input type="radio" name="todaySrc" value="builtin"><span>기본 모음</span></label>
+        <label><input type="radio" name="todaySrc" value="api"><span>외부 주소</span></label>
+      </div>
+      <div id="todayApiRow" hidden>
+        <label class="field-label" for="todayApi">외부 기도문 주소 (JSON) <span class="hint">CORS를 허용하는 주소</span></label>
+        <div class="inline-row">
+          <input class="input" id="todayApi" type="url" placeholder="https://example.com/prayer-today.json" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="done">
+          <button class="btn" type="button" id="todayApiTest">불러오기</button>
+        </div>
+      </div>
+      <p class="bg-status" id="todayStatus"></p>
+      <p class="set-note">오늘의 기도문은 한국시간 0시에 바뀝니다. ‘기본 모음’은 이 앱에 함께 들어 있는 기도문 30편입니다. 공개된 한국어 기도문 API는 사실상 없어서, 외부에서 가져오려면 직접 만든 JSON 주소를 넣으세요. 형식은 <code>{"title":"…","content":"…","source":"…"}</code> 한 개나, 그런 항목의 배열입니다(배열이면 날짜에 따라 하나를 고릅니다). 불러오지 못하면 기본 모음으로 대신합니다.</p>
     </section>
 
     <section class="set-section">
@@ -1217,12 +1400,137 @@ body:not([data-cloud="ready"]) .fab,body:not([data-cloud="ready"]) .btn-new-top{
         <div class="conn-row"><span>이 브라우저의 계정</span><span id="connUser"></span></div>
         <div class="conn-row"><span>실시간 동기화</span><span id="connRealtime"></span></div>
         <div class="conn-row"><span>여러 카테고리</span><span id="connMultiCat"></span></div>
+        <div class="conn-row"><span>프로필 저장</span><span id="connProfile"></span></div>
+        <div class="conn-row"><span>기기 시계</span><span id="connClock"></span></div>
       </div>
       <div class="inline-row" style="margin-top:12px">
         <button class="btn" type="button" id="btnReload">다시 불러오기</button>
       </div>
       <p class="set-note" id="connNote"></p>
     </section>
+  </div>
+</dialog>
+
+<!-- Profile dialog -->
+<dialog class="modal profile" id="profileDlg" aria-labelledby="pfTitle">
+  <form class="modal-panel glass" id="profileForm" novalidate autocomplete="on">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="set-head">
+      <h2 class="modal-title" id="pfTitle" tabindex="-1" style="margin:0">프로필</h2>
+      <button class="icon-btn" type="button" id="pfClose" aria-label="프로필 닫기"></button>
+    </div>
+    <div class="profile-head">
+      <div class="avatar-big" id="pfAvatar" aria-hidden="true"></div>
+      <div>
+        <div class="profile-photo-btns">
+          <button class="btn" type="button" id="pfPick">사진 선택</button>
+          <button class="btn btn-quiet" type="button" id="pfPhotoDel">사진 삭제</button>
+        </div>
+        <p class="cat-note" style="margin-top:8px">정사각형으로 잘라 작게 줄여 저장합니다.</p>
+      </div>
+      <input type="file" id="pfFile" accept="image/*" hidden>
+    </div>
+    <div class="field">
+      <label class="field-label" for="pfName">이름 <span class="hint" id="pfNameCount">0 / 30</span></label>
+      <input class="input" id="pfName" maxlength="30" autocomplete="name" placeholder="예: 김은혜" enterkeyhint="next">
+      <div class="field-meta"><span class="field-error" id="pfNameErr"></span></div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="pfBio">자기소개 <span class="hint" id="pfBioCount">0 / 300</span></label>
+      <textarea class="textarea" id="pfBio" maxlength="300" rows="3" style="min-height:104px" placeholder="예: 매일 아침 말씀과 기도로 하루를 엽니다."></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="pfEmail">이메일 <span class="hint">기도문 보내기에서 ‘나에게 보내기’로 씁니다</span></label>
+      <input class="input" id="pfEmail" type="email" maxlength="120" autocomplete="email" inputmode="email" placeholder="name@example.com" spellcheck="false" autocapitalize="off">
+      <div class="field-meta"><span class="field-error" id="pfEmailErr"></span></div>
+    </div>
+    <p class="set-note" id="pfNote" style="margin-top:0"></p>
+    <div class="profile-foot">
+      <button class="btn btn-danger btn-sm" type="button" id="pfDelete" hidden>프로필 지우기</button>
+      <div class="modal-actions">
+        <button class="btn" type="button" id="pfCancel">취소</button>
+        <button class="btn btn-primary" type="submit" id="pfSave">저장</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Save-as-image dialog -->
+<dialog class="modal imgdlg" id="imgDlg" aria-labelledby="imTitle">
+  <div class="modal-panel glass">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="set-head">
+      <h2 class="modal-title" id="imTitle" tabindex="-1" style="margin:0">이미지로 저장</h2>
+      <button class="icon-btn" type="button" id="imClose" aria-label="닫기"></button>
+    </div>
+    <div class="img-layout">
+      <div>
+        <div class="img-stage" id="imStage"><canvas id="imCanvas" aria-label="이미지 미리보기" role="img"></canvas></div>
+        <div class="img-pager" id="imPager" hidden>
+          <button class="icon-btn" type="button" id="imPrevPage" aria-label="이전 장"></button>
+          <span id="imPageText"></span>
+          <button class="icon-btn" type="button" id="imNextPage" aria-label="다음 장"></button>
+        </div>
+      </div>
+      <div class="img-controls">
+        <div class="set-sub">크기</div>
+        <div class="size-grid" id="imSizes" role="radiogroup" aria-label="이미지 크기"></div>
+        <div class="set-sub">배경</div>
+        <div class="segmented" role="radiogroup" aria-label="이미지 배경" id="imBgGroup" style="--n:4">
+          <label><input type="radio" name="imBg" value="current"><span>현재 배경</span></label>
+          <label><input type="radio" name="imBg" value="file"><span>사진 선택</span></label>
+          <label><input type="radio" name="imBg" value="scene"><span>기본 장면</span></label>
+          <label><input type="radio" name="imBg" value="plain"><span>단색</span></label>
+        </div>
+        <input type="file" id="imFile" accept="image/*" hidden>
+        <div class="range-block" style="margin-top:4px">
+          <div class="range-top"><label for="imBlur">배경 블러</label><output id="imBlurOut" for="imBlur"></output></div>
+          <input type="range" id="imBlur" min="0" max="40" step="1">
+        </div>
+        <div class="range-block">
+          <div class="range-top"><label for="imDim">배경 어둡게</label><output id="imDimOut" for="imDim"></output></div>
+          <input type="range" id="imDim" min="0" max="0.8" step="0.05">
+        </div>
+        <div class="range-block">
+          <div class="range-top"><label for="imScale">글자 크기</label><output id="imScaleOut" for="imScale"></output></div>
+          <input type="range" id="imScale" min="0.7" max="1.4" step="0.05">
+        </div>
+        <div class="set-sub">글</div>
+        <div class="segmented tight" role="radiogroup" aria-label="글 정렬" id="imAlignGroup" style="--n:2">
+          <label><input type="radio" name="imAlign" value="left"><span>왼쪽 정렬</span></label>
+          <label><input type="radio" name="imAlign" value="center"><span>가운데 정렬</span></label>
+        </div>
+        <div class="check-row" style="margin-top:10px">
+          <label><input type="checkbox" id="imShowTitle"><span>제목</span></label>
+          <label><input type="checkbox" id="imShowDate"><span>날짜</span></label>
+          <label><input type="checkbox" id="imShowName"><span>내 이름</span></label>
+          <label><input type="checkbox" id="imShowMark"><span>Prayer 표시</span></label>
+        </div>
+        <p class="img-note" id="imNote" aria-live="polite"></p>
+        <div class="img-actions">
+          <button class="btn" type="button" id="imShareBtn"></button>
+          <button class="btn btn-primary" type="button" id="imSaveBtn"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Send (share) dialog -->
+<dialog class="modal share" id="shareDlg" aria-labelledby="shTitle">
+  <div class="modal-panel glass">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="set-head">
+      <h2 class="modal-title" id="shTitle" tabindex="-1" style="margin:0">기도문 보내기</h2>
+      <button class="icon-btn" type="button" id="shClose" aria-label="닫기"></button>
+    </div>
+    <p class="modal-msg" id="shWhat" style="margin:6px 0 0;font-size:.88rem"></p>
+    <div class="check-row share-opts">
+      <label><input type="checkbox" id="shWithName"><span>끝에 내 이름 넣기</span></label>
+      <label><input type="checkbox" id="shWithDate"><span>날짜 넣기</span></label>
+    </div>
+    <div class="share-list" id="shList"></div>
+    <p class="set-note">보내기는 기도문 글만 전달합니다. 받는 사람은 이 앱에 접속하지 않고 그대로 읽습니다. 앱 주소는 모든 기도문이 보이는 주소이므로 함께 보내지 않습니다.</p>
   </div>
 </dialog>
 
@@ -1274,6 +1582,11 @@ const SYNC_ACCOUNT_PASSWORD = '8238';
      카테고리 이름     → name          text          계정별 중복 불가
      목록 순서         → sort_order    integer
      (행 식별자)       → id            uuid
+
+   [Supabase · public.profiles]  설정 → 프로필 (supabase-profile.sql 로 만듦, 계정당 1행)
+     이름 / 자기소개 / 이메일  → name / bio / email   text
+     사진                    → avatar             text  256×256 JPEG data URL
+     (테이블이 없으면 localStorage 'prayer.v1.profile' 에만 저장, 생기면 자동 업로드)
 
    [이 브라우저에만 저장 — 기기별 화면 설정이라 DB에 올리지 않음]
      localStorage 'prayer.v1.settings' : 배경·블러·글자 크기·정렬 등 화면 설정
@@ -1328,7 +1641,16 @@ const ICONS = {
   play:'<path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/>',
   pause:'<rect x="6.5" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="13.7" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" stroke="none"/>',
   focus:'<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>',
-  arrowUp:'<path d="M12 19V5M6 11l6-6 6 6"/>'
+  arrowUp:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  image:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/>',
+  send:'<path d="M20.5 3.5L10 14M20.5 3.5l-6.5 17-4-6.5-6.5-4z"/>',
+  user:'<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c.9-3.8 3.9-5.8 7.5-5.8s6.6 2 7.5 5.8"/>',
+  mail:'<rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="M4.5 7l7.5 6 7.5-6"/>',
+  chat:'<path d="M4.5 6.5A2.5 2.5 0 0 1 7 4h10a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 16h-6l-4.5 4v-4H7a2.5 2.5 0 0 1-2.5-2.5z"/>',
+  fileText:'<path d="M7 3.5h7l4.5 4.5v11A1.5 1.5 0 0 1 17 20.5H7A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5z"/><path d="M13.5 3.5V8.5h5M8.5 12.5h7M8.5 16h5"/>',
+  share:'<path d="M12 15V3.5M7.5 8l4.5-4.5L16.5 8"/><path d="M7 11H6a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 18 11h-1"/>',
+  expand:'<path d="M7 10l5 5 5-5"/>',
+  collapse:'<path d="M7 14l5-5 5 5"/>'
 };
 function icon(name, size = 20){
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
@@ -1513,8 +1835,15 @@ let settings = Object.assign({
   bgMode:'folder', bgFolder:'images/', bgBlur:18, bgDim:0.3, bgInterval:0, bgCache:null,
   readFont:'serif', lineHeight:1.8, listView:'card',
   autoScroll:false, scrollCpm:260,
-  verseTr:'modern', versePool:'curated', verseCycle:'hour'
+  verseTr:'modern', versePool:'curated', verseCycle:'hour',
+  todaySrc:'mix', todayApi:'',
+  img:{ size:'mobile', bg:'current', blur:14, dim:0.38, scale:1, align:'left', title:true, date:true, name:true, mark:true },
+  shareName:true, shareDate:false
 }, store.get(KEY_SET, {}) || {});
+if (!['mix','mine','builtin','api'].includes(settings.todaySrc)) settings.todaySrc = 'mix';
+if (typeof settings.todayApi !== 'string') settings.todayApi = '';
+settings.img = Object.assign({ size:'mobile', bg:'current', blur:14, dim:0.38, scale:1, align:'left', title:true, date:true, name:true, mark:true },
+  settings.img && typeof settings.img === 'object' ? settings.img : {});
 delete settings.categories;     // categories now live in public.prayer_categories
 settings.readSize = Math.min(SIZE_MAX, Math.max(SIZE_MIN, Number(settings.readSize) || 1.2));
 if (!['serif','sans'].includes(settings.readFont)) settings.readFont = 'serif';
@@ -1924,7 +2253,210 @@ function nextVerse(){
 function renderHeroIfHome(){ if (state.route && state.route.name === 'home') renderHero(); }
 /* Re-render when the Korean day/hour rolls over while the app stays open. */
 function watchDayChange(){
-  setInterval(() => { if (cycleKey() !== verseState.key) loadDailyVerse(); }, 60000);
+  setInterval(() => {
+    if (cycleKey() !== verseState.key) loadDailyVerse();
+    if (todayState.key && kstNow().date !== todayState.key) { todayState.offset = 0; todayState.open = false; renderTodayIfHome(); }
+  }, 60000);
+}
+
+/* ------------------------------------------------------------
+   오늘의 기도문
+   가져오는 곳 (설정 → 오늘의 기도문)
+     · 섞어서   : 날마다 내 기도문과 기본 모음 중 하나 (내 기도문이 3개 이상일 때)
+     · 내 기도문 : 저장한 기도문 가운데 하나
+     · 기본 모음 : 아래 TODAY_PRAYERS 30편 (이 앱을 위해 새로 쓴 글이라 저작권 걱정 없이 사용 가능)
+     · 외부 주소 : 직접 지정한 JSON 주소 — 공개된 한국어 기도문 API는 사실상 없어서,
+                   원하는 기도문을 JSON으로 올려 두고 그 주소를 넣는 방식입니다.
+   한국시간 0시에 바뀌고, 🔀 버튼으로 오늘 안에서 다른 기도문을 볼 수 있습니다.
+   ------------------------------------------------------------ */
+const TODAY_PRAYERS = [
+  { t:'새 아침을 여는 기도', c:'주님, 밤새 지켜 주시고 새 아침을 열어 주셔서 감사합니다.\n오늘 제게 맡기신 시간을 헛되이 흘려보내지 않게 하소서.\n\n눈을 뜨며 가장 먼저 주님을 떠올리게 하시고,\n하루의 첫 마음을 주님께 드리는 기쁨을 알게 하소서.\n\n오늘 만날 사람들 앞에서 주님의 온유함을 닮게 하시고,\n작은 일에도 감사로 응답하는 하루가 되게 하소서. 아멘.' },
+  { t:'하루를 마치는 기도', c:'주님, 오늘 하루도 제 곁을 떠나지 않으셨음을 고백합니다.\n잘한 일보다 부족했던 순간이 더 먼저 떠오르지만,\n그 모든 시간 위에 주님의 은혜가 덮여 있음을 믿습니다.\n\n다 하지 못한 일은 내일에 맡기고,\n풀지 못한 마음은 주님 손에 올려 드립니다.\n\n이 밤, 몸과 마음이 깊이 쉬게 하시고\n내일 아침 새 힘으로 일어나게 하소서. 아멘.' },
+  { t:'감사로 드리는 기도', c:'좋으신 하나님, 당연하게 여겼던 것들을 다시 헤아려 봅니다.\n숨 쉬는 일, 먹을 양식, 기댈 수 있는 사람들,\n오늘 하루를 걸어갈 두 발까지 모두 주님의 선물입니다.\n\n부족한 것을 세기보다 받은 것을 세는 사람이 되게 하시고,\n감사가 제 입술의 습관이 되게 하소서.\n\n받은 은혜를 흘려보내는 통로로 저를 사용하여 주소서. 아멘.' },
+  { t:'마음의 평안을 구하는 기도', c:'평강의 주님, 제 마음이 여러 갈래로 흩어져 있습니다.\n해야 할 일과 걱정이 파도처럼 밀려올 때\n주님이 폭풍을 잠잠하게 하셨던 것을 기억하게 하소서.\n\n지금 이 자리에서 숨을 고르며 주님께 머뭅니다.\n염려를 주님께 맡기고, 주님이 주시는 평안을 받습니다.\n\n세상이 줄 수 없는 그 평안이 오늘 저를 지키게 하소서. 아멘.' },
+  { t:'돌이키는 마음의 기도', c:'자비로우신 하나님, 주님 앞에 정직하게 섭니다.\n알면서도 외면했던 일, 서두르다 상처 준 말,\n마음속에 품었던 교만을 주님께 내려놓습니다.\n\n정죄하지 않으시고 다시 일으켜 세우시는 사랑에 감사합니다.\n용서받은 사람답게 저도 용서하며 살게 하소서.\n\n오늘부터 다시, 주님의 길로 한 걸음 내딛게 하소서. 아멘.' },
+  { t:'가정을 위한 기도', c:'사랑의 하나님, 우리 가정을 주님께 올려 드립니다.\n함께 사는 날들이 익숙해져 고마움을 잊지 않게 하시고,\n서로의 수고를 먼저 알아보는 눈을 주소서.\n\n다툼이 생길 때는 이기려 하기보다 이해하려 하게 하시고,\n지친 식구에게 따뜻한 쉼터가 되어 주게 하소서.\n\n우리 집 식탁과 대화 속에 주님이 늘 함께하소서. 아멘.' },
+  { t:'부모님을 위한 기도', c:'주님, 저를 낳고 길러 주신 부모님을 위해 기도합니다.\n세월이 흐르며 약해지는 몸을 붙들어 주시고,\n외로움과 불안이 마음에 머물지 않게 하소서.\n\n제가 받은 사랑을 다 갚을 수는 없지만,\n자주 안부를 묻고 귀 기울여 듣는 자녀가 되게 하소서.\n\n부모님의 남은 날들이 평안과 감사로 채워지게 하소서. 아멘.' },
+  { t:'자녀를 위한 기도', c:'하나님 아버지, 제게 맡기신 자녀를 주님께 부탁드립니다.\n세상의 기준보다 주님의 사랑 안에서 자라게 하시고,\n실패해도 다시 일어서는 마음을 주소서.\n\n제 욕심으로 아이의 길을 정하지 않게 하시고,\n기다려 주고 믿어 주는 부모가 되게 하소서.\n\n아이의 발걸음마다 주님의 손길이 함께하소서. 아멘.' },
+  { t:'일터를 위한 기도', c:'주님, 오늘 제가 일할 자리를 축복하여 주소서.\n맡은 일을 성실하게 감당하게 하시고,\n보이지 않는 곳에서도 정직하게 하소서.\n\n함께 일하는 사람들을 경쟁자보다 동료로 보게 하시고,\n어려운 결정 앞에서는 주님의 지혜를 구하게 하소서.\n\n제 수고가 누군가에게 유익이 되게 하소서. 아멘.' },
+  { t:'지혜를 구하는 기도', c:'지혜의 근원이신 하나님,\n오늘 제 앞에 놓인 선택들을 주님께 가져옵니다.\n제 생각이 짧고 마음이 조급하여 바른 길을 놓칠까 두렵습니다.\n\n말하기 전에 한 번 더 듣게 하시고,\n결정하기 전에 먼저 주님께 묻게 하소서.\n\n지식보다 깊은 분별력을, 계산보다 곧은 마음을 주소서. 아멘.' },
+  { t:'치유를 구하는 기도', c:'치료하시는 하나님, 아픈 몸과 지친 마음을 주님께 맡깁니다.\n고통 가운데서도 저를 떠나지 않으시는 주님을 신뢰합니다.\n\n치료를 돕는 손길에 지혜를 더하시고,\n회복을 기다리는 시간에 인내와 소망을 주소서.\n\n아픔을 겪는 모든 이들에게도 주님의 위로가 닿게 하소서.\n다시 일어나 주님을 찬양하는 날을 기다립니다. 아멘.' },
+  { t:'두려움을 이기는 기도', c:'주님, 알 수 없는 내일 앞에서 마음이 떨립니다.\n일어나지도 않은 일을 미리 걱정하며 오늘을 잃어버리곤 합니다.\n\n두려워하지 말라 하신 주님의 말씀을 붙듭니다.\n제 앞서 가시는 주님이 계시니 혼자가 아님을 믿습니다.\n\n두려움이 아닌 믿음으로 오늘 한 걸음을 내딛게 하소서. 아멘.' },
+  { t:'기다림 속의 기도', c:'신실하신 하나님, 응답을 기다리는 시간이 길게 느껴집니다.\n조급한 마음에 제 방법을 앞세우고 싶을 때가 많습니다.\n\n주님의 때가 가장 좋은 때임을 믿게 하시고,\n기다리는 동안에도 오늘 할 일에 충실하게 하소서.\n\n기다림이 헛된 시간이 아니라\n주님을 더 깊이 알아 가는 시간이 되게 하소서. 아멘.' },
+  { t:'용서를 배우는 기도', c:'주님, 아직 용서하지 못한 사람이 제 마음에 있습니다.\n그 일을 떠올리면 여전히 마음이 아프고 굳어집니다.\n\n억지로 잊으라 하지 않으시고 제 아픔을 먼저 안아 주시는 주님,\n제가 받은 큰 용서를 기억하게 하소서.\n\n미움에 묶여 있지 않고 자유롭게 살아가도록\n용서할 수 있는 힘을 조금씩 허락하소서. 아멘.' },
+  { t:'이웃을 위한 기도', c:'사랑의 주님, 제 주변의 이웃을 떠올립니다.\n아파하는 이, 외로운 이, 생계를 걱정하는 이들을 기억하소서.\n\n제가 할 수 있는 작은 친절을 미루지 않게 하시고,\n말뿐인 위로가 아니라 곁에 머무는 사랑을 실천하게 하소서.\n\n제 삶이 누군가에게 주님의 따뜻함을 전하는 통로가 되게 하소서. 아멘.' },
+  { t:'나라와 공동체를 위한 기도', c:'공의의 하나님, 우리가 사는 이 땅을 주님께 올려 드립니다.\n책임을 맡은 이들에게 겸손과 지혜를 주시고,\n약한 이들의 목소리가 외면당하지 않게 하소서.\n\n서로 다른 생각을 가진 사람들이 존중하며 대화하게 하시고,\n분열이 있는 곳에 화해를 이루어 주소서.\n\n정의와 평화가 강물처럼 흐르게 하소서. 아멘.' },
+  { t:'믿음을 새롭게 하는 기도', c:'주님, 제 믿음이 작고 흔들릴 때가 많습니다.\n눈에 보이는 것에 마음을 빼앗기고\n주님의 약속을 쉽게 잊어버립니다.\n\n겨자씨만 한 믿음이라도 귀하게 여기시는 주님,\n오늘 제 안에 믿음의 불씨를 다시 지펴 주소서.\n\n보지 못하고도 믿는 복을 누리게 하소서. 아멘.' },
+  { t:'소망을 품는 기도', c:'소망의 하나님, 지친 마음에 다시 빛을 비추어 주소서.\n상황이 쉽게 바뀌지 않아 낙심될 때에도\n모든 것을 새롭게 하시는 주님을 바라보게 하소서.\n\n어둠이 길어도 아침은 반드시 온다는 것을 믿습니다.\n오늘 하루를 버틸 만큼의 힘과 소망을 주소서.\n\n제가 품은 소망이 다른 이에게도 번져 가게 하소서. 아멘.' },
+  { t:'사랑을 배우는 기도', c:'사랑이신 하나님, 저는 여전히 사랑이 서툽니다.\n가까운 사람에게 더 쉽게 짜증을 내고,\n받은 사랑보다 받지 못한 것을 더 오래 기억합니다.\n\n오래 참고 온유한 주님의 사랑을 닮게 하소서.\n조건 없이 품어 주신 그 사랑으로 저도 사람을 품게 하소서.\n\n오늘 한 사람에게라도 그 사랑을 전하게 하소서. 아멘.' },
+  { t:'쉼을 구하는 기도', c:'주님, 쉬지 못하고 달려온 날들이 쌓여 몸과 마음이 지쳤습니다.\n멈추면 뒤처질 것 같아 스스로를 몰아세웠습니다.\n\n수고하고 무거운 짐 진 자들을 부르시는 주님께 나아갑니다.\n제 짐을 내려놓고 주님 품에서 쉬게 하소서.\n\n쉼도 주님이 주신 선물임을 기억하며\n다시 걸어갈 힘을 얻게 하소서. 아멘.' },
+  { t:'말을 지키는 기도', c:'주님, 오늘 제 입술을 지켜 주소서.\n생각 없이 내뱉은 말이 누군가의 마음에 오래 남지 않게 하시고,\n험담과 불평 대신 격려와 축복의 말을 하게 하소서.\n\n말하기보다 듣기를 먼저 하게 하시고,\n진실을 말하되 사랑 안에서 말하게 하소서.\n\n제 말이 주님께 기쁨이 되게 하소서. 아멘.' },
+  { t:'식탁 앞에서 드리는 기도', c:'좋으신 하나님, 오늘도 일용할 양식을 주셔서 감사합니다.\n이 음식이 식탁에 오르기까지 수고한 모든 손길을 축복하소서.\n\n함께 먹는 이들과 나누는 대화가 따뜻하게 하시고,\n배불리 먹는 이 순간에 굶주린 이웃도 기억하게 하소서.\n\n이 양식으로 얻은 힘으로 주님의 뜻을 따라 살게 하소서. 아멘.' },
+  { t:'주일을 맞는 기도', c:'주님, 한 주를 돌아보며 주님의 날을 맞습니다.\n분주했던 마음을 내려놓고 온전히 예배하게 하소서.\n\n말씀 앞에서 제 삶이 새로워지게 하시고,\n함께 예배하는 이들과 사랑으로 하나 되게 하소서.\n\n예배의 자리에서 받은 은혜를 품고\n새로운 한 주를 살아가게 하소서. 아멘.' },
+  { t:'길을 묻는 기도', c:'인도하시는 하나님, 어디로 가야 할지 알 수 없을 때가 있습니다.\n여러 길 앞에서 망설이고 선택한 뒤에도 뒤돌아보곤 합니다.\n\n제 걸음을 정하시는 분이 주님이심을 믿습니다.\n닫힌 문 앞에서도 실망하지 않고 주님의 뜻을 신뢰하게 하소서.\n\n한 번에 한 걸음씩, 오늘 비추시는 만큼만 따라가게 하소서. 아멘.' },
+  { t:'고난 중에 드리는 기도', c:'주님, 지금 제가 지나는 길이 너무 어둡고 무겁습니다.\n왜 이런 일이 생겼는지 다 이해할 수 없습니다.\n\n그러나 골짜기를 지날 때에도 함께하신다는 약속을 붙듭니다.\n눈물 흘리는 저를 외면하지 않으시는 주님을 믿습니다.\n\n이 시간을 통과하게 하시고,\n그 끝에서 주님의 선하심을 보게 하소서. 아멘.' },
+  { t:'마음을 지키는 기도', c:'주님, 무엇보다 제 마음을 지키게 하소서.\n비교와 욕심, 조급함과 불안이 마음을 흔들 때\n그것들이 제 안에 머물지 않게 하소서.\n\n깨끗한 마음을 창조하시고\n제 안에 정직한 영을 새롭게 하소서.\n\n생명의 근원이 마음에서 나오니\n오늘 제 마음이 주님을 향하게 하소서. 아멘.' },
+  { t:'관계를 위한 기도', c:'화평의 하나님, 제가 맺고 있는 관계들을 주님께 맡깁니다.\n멀어진 사람, 서운한 사람, 오해가 쌓인 사람을 떠올립니다.\n\n먼저 다가갈 용기를 주시고,\n제 잘못은 인정하고 상대의 사정은 헤아리게 하소서.\n\n끊어진 자리마다 주님이 다리를 놓아 주소서. 아멘.' },
+  { t:'배우는 이를 위한 기도', c:'지혜를 주시는 주님, 오늘 배우는 자리에 선 이들을 축복하소서.\n배움이 지겨운 짐이 아니라 세상을 넓게 보는 창이 되게 하소서.\n\n집중할 힘과 끝까지 해낼 인내를 주시고,\n결과에 상관없이 자신을 귀히 여기게 하소서.\n\n배운 것을 이웃을 위해 쓰는 사람으로 자라게 하소서. 아멘.' },
+  { t:'자연 앞에서 드리는 기도', c:'창조의 하나님, 하늘과 바람과 나무를 바라보며 주님을 찬양합니다.\n바쁘게 사느라 눈앞의 아름다움을 지나칠 때가 많았습니다.\n\n하루 한 번은 멈추어 하늘을 올려다보게 하시고,\n주님이 지으신 세상을 아끼고 돌보는 사람이 되게 하소서.\n\n모든 피조물과 함께 주님을 노래하게 하소서. 아멘.' },
+  { t:'주님께 드리는 고백', c:'주님, 제가 가진 것이 많지 않아도\n주님 한 분으로 충분함을 고백합니다.\n\n잘될 때에도 교만하지 않고 어려울 때에도 원망하지 않으며,\n어떤 형편에서도 주님을 신뢰하는 법을 배우게 하소서.\n\n오늘 제 삶의 중심에 주님을 모십니다.\n제 생각과 말과 걸음이 주님을 기쁘시게 하소서. 아멘.' }
+];
+
+const KEY_TODAY_API = 'prayer.v1.todayApiCache';
+const todayState = { key:'', offset:0, open:false, api:{ phase:'idle', url:'', key:'', data:null, error:'' }, apiRun:0, shown:null };
+
+function renderTodayIfHome(){ if (state.route && state.route.name === 'home') renderToday(); }
+function builtinToday(h){
+  const b = TODAY_PRAYERS[h % TODAY_PRAYERS.length];
+  return { kind:'builtin', title:b.t, content:b.c, source:'기본 기도문 모음' };
+}
+/* Which prayer today: stable for the day (adding a prayer rarely changes it). */
+function pickToday(){
+  const key = kstNow().date;
+  if (todayState.key !== key) { todayState.key = key; todayState.offset = 0; todayState.open = false; }
+  const seed = 'prayer-today-' + key + (todayState.offset ? ':' + todayState.offset : '');
+  const h = hashStr(seed);
+  let src = settings.todaySrc;
+  if (src === 'api') {
+    const a = todayState.api;
+    if (a.phase === 'ready' && a.data) return Object.assign({ kind:'api' }, a.data);
+    if (a.phase === 'loading' || a.phase === 'idle') return { kind:'loading' };
+    return Object.assign(builtinToday(h), { note: a.error || '외부 주소에서 불러오지 못해 기본 모음에서 골랐습니다.' });
+  }
+  if (src === 'mix') src = (h >>> 5) % 2 ? 'mine' : 'builtin';
+  if (src === 'mine') {
+    if (cloud.phase !== 'ready') return settings.todaySrc === 'mine' ? { kind:'loading' } : builtinToday(h);
+    const mine = items.filter(p => String(p.content).replace(/\s/g, '').length >= 20);
+    if (mine.length < (settings.todaySrc === 'mix' ? 3 : 1)) {
+      return Object.assign(builtinToday(h), settings.todaySrc === 'mine' ? { note:'저장한 기도문이 아직 없어 기본 모음에서 골랐습니다.' } : {});
+    }
+    let best = null, bestH = Infinity;
+    for (const p of mine) { const v = hashStr(seed + '|' + p.id); if (v < bestH) { bestH = v; best = p; } }
+    return { kind:'mine', id:best.id, title:best.title, content:best.content, date:best.date, source:'내 기도문 · ' + fmtDot(best.date) };
+  }
+  return builtinToday(h);
+}
+
+const stripTags = s => String(s == null ? '' : s).replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p[^>]*>/gi, '\n\n').replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+/* Accepts {title, content|text|prayer|body, source|author}, an array of them, {data:…}/{prayer:…}/{items:[…]}, or plain text. */
+function parseTodayPayload(raw, h){
+  let d = raw;
+  if (typeof d === 'string') {
+    const t = stripTags(d);
+    return t ? { title: deriveTitle(t), content: t, source: '' } : null;
+  }
+  for (let k = 0; k < 3 && d && !Array.isArray(d) && typeof d === 'object'; k++) {
+    const inner = d.data || d.prayer || d.result || d.items || d.prayers;
+    if (inner && (Array.isArray(inner) || typeof inner === 'object') && !(d.content || d.text || d.body)) d = inner; else break;
+  }
+  if (Array.isArray(d)) d = d.length ? d[h % d.length] : null;
+  if (!d || typeof d !== 'object') return typeof d === 'string' ? parseTodayPayload(d, h) : null;
+  const content = stripTags(d.content || d.text || d.prayer || d.body || d.contents || '');
+  if (!content) return null;
+  const title = stripTags(d.title || d.name || d.subject || '') || deriveTitle(content);
+  const source = stripTags(d.source || d.author || d.by || d.origin || '');
+  return { title: title.slice(0, 80), content: content.slice(0, 4000), source: source.slice(0, 80) };
+}
+async function loadTodayApi({ force = false } = {}){
+  const url = String(settings.todayApi || '').trim();
+  const key = kstNow().date;
+  const a = todayState.api;
+  if (!url) { Object.assign(a, { phase:'error', url, key, data:null, error:'외부 주소가 비어 있어 기본 모음에서 골랐습니다.' }); renderTodayIfHome(); renderTodayInfo(); return; }
+  const cache = store.get(KEY_TODAY_API, null);
+  if (!force && cache && cache.url === url && cache.key === key && cache.data) {
+    Object.assign(a, { phase:'ready', url, key, data:cache.data, error:'' });
+    renderTodayIfHome(); renderTodayInfo(); return;
+  }
+  const run = ++todayState.apiRun;
+  Object.assign(a, { phase:'loading', url, key, data:null, error:'' });
+  renderTodayIfHome(); renderTodayInfo();
+  try {
+    let u;
+    try { u = new URL(url, document.baseURI); } catch (e) { throw new Error('주소 형식이 올바르지 않습니다'); }
+    const res = await fetchOnce(u.href, { cache:'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    let raw = text;
+    try { raw = JSON.parse(text); } catch (e) { /* plain text is fine too */ }
+    const data = parseTodayPayload(raw, hashStr('prayer-today-api-' + key));
+    if (!data) throw new Error('기도문 내용(content)을 찾지 못했습니다');
+    if (run !== todayState.apiRun) return;
+    data.source = data.source || u.hostname;
+    Object.assign(a, { phase:'ready', data });
+    store.set(KEY_TODAY_API, { url, key, data, at: Date.now() });
+  } catch (e) {
+    if (run !== todayState.apiRun) return;
+    const why = /failed to fetch|networkerror|load failed/i.test(String(e && e.message)) ? '연결할 수 없거나 CORS를 허용하지 않는 주소입니다' : String(e && e.message || e);
+    Object.assign(a, { phase:'error', error:`외부 기도문을 불러오지 못해(${why}) 기본 모음에서 골랐습니다.` });
+  }
+  renderTodayIfHome(); renderTodayInfo();
+}
+function renderTodayInfo(){
+  const el = $('#todayStatus');
+  if (!el) return;
+  $('#todayApiRow').hidden = settings.todaySrc !== 'api';
+  const a = todayState.api;
+  let text = '', warn = false;
+  if (settings.todaySrc === 'api') {
+    if (a.phase === 'loading') text = '외부 주소에서 불러오는 중입니다…';
+    else if (a.phase === 'ready' && a.data) text = `불러옴: ${a.data.title}${a.data.source ? ' · ' + a.data.source : ''}`;
+    else if (a.phase === 'error') { text = a.error; warn = true; }
+  } else {
+    const p = todayState.shown;
+    if (p && p.title) text = `오늘: ${p.title} · ${p.source || ''}`;
+  }
+  el.textContent = text;
+  el.classList.toggle('warn', warn);
+}
+function renderToday(){
+  const el = $('#today');
+  if (!el) return;
+  const p = pickToday();
+  todayState.shown = p.kind === 'loading' ? null : p;
+  const tools = `<div class="hero-tools">
+      <button class="icon-btn" type="button" data-action="today-next" aria-label="다른 기도문 보기" title="다른 기도문 보기">${icon('shuffle', 17)}</button>
+      ${p.kind !== 'loading' ? `<button class="icon-btn" type="button" data-action="today-image" aria-label="이미지로 저장" title="이미지로 저장">${icon('image', 17)}</button>
+      <button class="icon-btn" type="button" data-action="today-copy" aria-label="기도문 복사" title="기도문 복사">${icon('copy', 17)}</button>` : ''}
+    </div>`;
+  if (p.kind === 'loading') {
+    el.innerHTML = `<div class="today-top"><span class="pill">오늘의 기도문</span>${tools}</div>
+      <div aria-hidden="true" style="margin-top:18px"><div class="skel" style="width:52%;height:16px"></div><div class="skel" style="width:96%"></div><div class="skel" style="width:90%"></div><div class="skel" style="width:70%"></div></div>`;
+    requestAnimationFrame(fitHeroCol);
+    return;
+  }
+  const action = p.kind === 'mine'
+    ? `<a class="btn" href="#/p/${encodeURIComponent(p.id)}" data-nav>${icon('book', 16)}읽기</a>`
+    : `<button class="btn" type="button" data-action="today-save" title="이 기도문을 내 기도문으로 저장합니다">${icon('plus', 16)}내 기도문으로</button>`;
+  el.classList.toggle('open', todayState.open);
+  el.innerHTML = `
+    <div class="today-top">
+      <span class="pill">오늘의 기도문<span class="today-src">· ${esc(p.kind === 'mine' ? '내 기도문' : p.kind === 'api' ? '외부' : '기본 모음')}</span></span>
+      ${tools}
+    </div>
+    <h3 class="today-title">${esc(p.title)}</h3>
+    <div class="today-body" id="todayBody">${prayerHtml(p.content)}</div>
+    ${p.note ? `<p class="note">${esc(p.note)}</p>` : ''}
+    <div class="today-foot">
+      <button class="btn btn-quiet" type="button" data-action="today-toggle" id="todayToggle" aria-expanded="${todayState.open}" aria-controls="todayBody">
+        ${todayState.open ? icon('collapse', 16) + '접기' : icon('expand', 16) + '전체 보기'}</button>
+      <span class="verse-src today-foot-src">${esc(p.kind === 'mine' ? fmtDot(p.date) : p.kind === 'api' ? (p.source || '') : '')}</span>
+      ${action}
+    </div>`;
+  requestAnimationFrame(() => {
+    const body = $('#todayBody');
+    const long = !!body && (todayState.open || body.scrollHeight > body.clientHeight + 4);
+    el.classList.toggle('short', !long);
+    const tg = $('#todayToggle');
+    if (tg) tg.hidden = !long;
+    fitHeroCol();
+  });
+  renderTodayInfo();
+}
+function todayPayload(){
+  const p = todayState.shown;
+  if (!p) return null;
+  return { title: p.title, content: p.content, date: p.date || todayStr(), cats: [], source: p.kind === 'mine' ? '' : (p.source || '') };
 }
 
 /* ------------------------------------------------------------
@@ -1932,8 +2464,18 @@ function watchDayChange(){
    ------------------------------------------------------------ */
 function renderHome(opts){
   renderHero();
+  renderToday();
   renderChips();
   renderList(opts);
+}
+/* Desktop: the left column sticks while it fits the window; when it is taller, it keeps
+   its bottom edge in view instead of being cut off (negative sticky top). */
+function fitHeroCol(){
+  const col = $('.hero-col');
+  if (!col) return;
+  if (!window.matchMedia('(min-width:1024px)').matches) { col.style.top = ''; return; }
+  const top = Math.min(24, window.innerHeight - col.offsetHeight - 24);
+  col.style.top = top + 'px';
 }
 
 function renderHero(){
@@ -2184,6 +2726,7 @@ function renderRead(id){
   const idx = ctx.findIndex(x => x.id === id);
   setNav($('#rdPrev'), ctx[idx - 1], '이전 기도', '첫 번째 기도문입니다');
   setNav($('#rdNext'), ctx[idx + 1], '다음 기도', '마지막 기도문입니다');
+  updateDockNav();
   updateSizeButtons();
   document.title = p.title + ' | Prayer';
   return true;
@@ -2284,8 +2827,12 @@ function openEditor(id){
 
   const seed = (!p && state.verseSeed) ? state.verseSeed : null;
   state.verseSeed = null;
+  const prayerSeed = seed && seed.kind === 'prayer';
   const base = p
     ? { title:p.title, categories:catsOf(p).slice(), content:p.content, date:p.date, tags:p.tags.slice(), memo:p.memo }
+    : prayerSeed
+    ? { title: seed.title, categories: [cats().includes(state.cat) ? state.cat : (cats().includes('묵상') ? '묵상' : cats()[0])],
+        content: seed.text, date: todayStr(), tags:['오늘의기도'], memo: seed.source ? '출처: ' + seed.source : '' }
     : { title: seed ? seed.ref : '',
         categories: [cats().includes(state.cat) ? state.cat : (cats().includes('묵상') ? '묵상' : cats()[0])],
         content: seed ? `${seed.text}
@@ -2551,9 +3098,15 @@ function updateSizeButtons(){
    - tapping the prayer text pauses or resumes
    - the screen is kept awake while it runs (Screen Wake Lock API, where supported)
    ------------------------------------------------------------ */
+/* Why it used to stutter: at a reading pace the page moves only 5–15 px per second, but
+   window.scrollTo() lands on whole pixels, so the text sat still for several frames and
+   then jumped a pixel ("뚝뚝"). Now the whole-pixel part goes to the window scroll and the
+   leftover fraction is carried by a GPU transform on the prayer, so it glides every frame.
+   The speed also eases in and out (start, resume after a touch, speed change) instead of
+   switching instantly. */
 const autoScroll = {
   playing: false, raf: 0, last: 0, pos: 0, lastSet: -1, holdUntil: 0,
-  rate: 0, startTimer: 0, wake: null,
+  rate: 0, v: 0, frac: 0, startTimer: 0, wake: null, carry: false, layer: null,
 
   recalc(){
     const body = $('#rdBody');
@@ -2575,7 +3128,10 @@ const autoScroll = {
     this.pos = window.scrollY;
     this.lastSet = -1;
     this.holdUntil = 0;
+    this.v = 0;                                   // ease in from standstill
     this.last = performance.now();
+    this.layer = $('#view-read .read-layout');
+    if (this.layer) this.layer.classList.add('as-live');
     cancelAnimationFrame(this.raf);
     this.raf = requestAnimationFrame(t => this.tick(t));
     this.lockScreen();
@@ -2586,9 +3142,18 @@ const autoScroll = {
     cancelAnimationFrame(this.raf);
     const was = this.playing;
     this.playing = false;
+    this.setFrac(0);
+    if (this.layer) this.layer.classList.remove('as-live');
     this.releaseScreen();
     this.ui();
     if (was && reason) toast(reason, 'check');
+  },
+  setFrac(f){
+    if (!this.layer) this.layer = $('#view-read .read-layout');
+    if (!this.layer) return;
+    if (Math.abs(f - this.frac) < 0.004 && f !== 0) return;
+    this.frac = f;
+    this.layer.style.transform = f ? `translateY(${(-f).toFixed(3)}px)` : '';
   },
   toggle(){ this.playing ? this.stop() : this.start(); },
   /* Called when a prayer opens: start after a short pause if 설정 says so. */
@@ -2603,23 +3168,33 @@ const autoScroll = {
   },
   tick(t){
     if (!this.playing) return;
-    const dt = Math.min(100, t - this.last) / 1000;
+    const dt = Math.min(0.1, Math.max(0, t - this.last) / 1000);
     this.last = t;
     const y = window.scrollY;
     // The page moved without us (finger, wheel, scrollbar, keyboard): follow it, pause briefly.
-    if (this.lastSet >= 0 && Math.abs(y - this.lastSet) > 3) { this.holdUntil = t + 1600; }
+    if (this.lastSet >= 0 && Math.abs(y - this.lastSet) > 2) { this.holdUntil = t + 1600; }
     if (t < this.holdUntil) {
-      this.pos = y; this.lastSet = -1;
+      this.pos = y; this.lastSet = -1; this.v = 0;
+      this.setFrac(0);
     } else {
-      this.pos += this.rate * dt;
+      // Velocity follows the target with a ~0.8 s time constant: soft start, soft speed changes.
+      this.v += (this.rate - this.v) * (1 - Math.exp(-dt / 0.8));
       const max = this.maxY();
-      if (this.pos >= max) {
+      // Glide to a stop over the last few lines instead of hitting the end.
+      const left = max - this.pos;
+      const vEff = left < 60 ? this.v * Math.max(0.25, left / 60) : this.v;
+      this.pos += vEff * dt;
+      if (this.pos >= max - 0.5) {
+        this.setFrac(0);
         window.scrollTo(0, max);
         this.stop({ reason: '기도문 끝까지 내려왔습니다' });
         return;
       }
-      window.scrollTo(0, this.pos);
+      const whole = Math.floor(this.pos);
+      if (whole !== Math.round(y) || this.lastSet < 0) window.scrollTo(0, whole);
       this.lastSet = window.scrollY;
+      // If the browser could not land on that pixel (rare), don't let the transform drift.
+      this.setFrac(Math.abs(this.lastSet - whole) < 1 ? this.pos - this.lastSet : 0);
     }
     this.raf = requestAnimationFrame(tt => this.tick(tt));
   },
@@ -2649,6 +3224,27 @@ const autoScroll = {
     $('#asFaster').disabled = settings.scrollCpm >= CPM_MAX;
   }
 };
+/* Dock prev/next mirror the side-panel buttons (same targets, same order). */
+function updateDockNav(){
+  [['#asPrev', '#rdPrev', '이전', 'chevL'], ['#asNext', '#rdNext', '다음', 'chevR']].forEach(([dockSel, srcSel, word, ic]) => {
+    const b = $(dockSel), src = $(srcSel);
+    if (!b || !src) return;
+    const id = src.dataset.id || '';
+    const title = id ? (findItem(id) || {}).title || '' : '';
+    b.disabled = !id;
+    b.dataset.id = id;
+    const label = `<span class="as-nav-label">${word}</span>`;
+    b.innerHTML = ic === 'chevL' ? icon(ic, 18) + label : label + icon(ic, 18);
+    b.title = id ? `${word} 기도: ${title}` : (ic === 'chevL' ? '첫 번째 기도문입니다' : '마지막 기도문입니다');
+    b.setAttribute('aria-label', id ? `${word} 기도로 이동: ${title}` : b.title);
+  });
+}
+/* Moves to another prayer; if auto-scroll was running it keeps running there. */
+function goSibling(id){
+  if (!id) return;
+  autoScroll.carry = autoScroll.playing;
+  go('#/p/' + encodeURIComponent(id), { replace:true });
+}
 function setScrollCpm(v, { announce = false } = {}){
   settings.scrollCpm = Math.min(CPM_MAX, Math.max(CPM_MIN, Math.round(v / 10) * 10));
   saveSettings();
@@ -2795,7 +3391,11 @@ function route(){
       $('#rdFocus').setAttribute('aria-pressed', String(!!state.focus));
       autoScroll.ui();
       updateReadProgress();
-      if (!prev || prev.name !== 'read' || prev.id !== r.id) autoScroll.schedule();
+      if (autoScroll.carry) {
+        autoScroll.carry = false;
+        clearTimeout(autoScroll.startTimer);
+        autoScroll.startTimer = setTimeout(() => autoScroll.start({ quiet:true }), 1100);
+      } else if (!prev || prev.name !== 'read' || prev.id !== r.id) autoScroll.schedule();
     }
   } else {
     ok = openEditor(r.id);
@@ -2817,7 +3417,8 @@ const cloud = {
   sb: null, user: null, channel: null, multiCat: null,
   phase: 'connecting',          // connecting | loading | ready | error | config | locked
   error: '', pending: 0, realtime: 'off', lastLoad: 0, reloading: false,
-  catReloadTimer: null
+  catReloadTimer: null,
+  skew: null, skewRetries: 0, autoRetry: 0, retryTimer: null
 };
 
 /* Session storage for supabase-js that survives sandboxes without localStorage. */
@@ -2828,12 +3429,48 @@ const authStorage = {
   removeItem(k){ try { localStorage.removeItem(k); } catch (e) { delete authMem[k]; } }
 };
 
-function timedFetch(input, init = {}){
+function fetchOnce(input, init = {}){
   const ctl = typeof AbortController === 'function' ? new AbortController() : null;
   if (!ctl) return fetch(input, init);
   const t = setTimeout(() => ctl.abort(), 15000);
   if (init.signal) init.signal.addEventListener('abort', () => ctl.abort());
   return fetch(input, Object.assign({}, init, { signal: ctl.signal })).finally(() => clearTimeout(t));
+}
+/* "JWT issued at future" (PGRST303)
+   Supabase의 인증 서버가 방금 발급한 토큰의 발급 시각(iat)이 데이터베이스(API) 서버의 시계보다
+   몇 초 앞서 있으면, 그 토큰으로 보낸 첫 요청이 거부됩니다. 토큰이 새로 발급된 직후(접속·로그인·
+   1시간마다 자동 갱신·앱으로 돌아올 때)에 자주 생기고, 몇 초만 지나면 같은 토큰이 정상으로 통과합니다.
+   → 모든 Supabase 요청을 이 함수로 보내고, 이 오류일 때만 잠깐 기다렸다가 같은 요청을 다시 보냅니다.
+     (최대 6번, 총 약 20초 — 사용자는 오류 화면 대신 잠깐의 "불러오는 중"만 보게 됩니다) */
+const SKEW_DELAYS = [700, 1200, 2000, 3000, 5000, 8000];
+const isSkewText = s => /issued at future|iat.{0,20}future|PGRST303.{0,80}future/i.test(String(s || ''));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function timedFetch(input, init = {}){
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetchOnce(input, init);
+    if ((res.status === 401 || res.status === 403) && attempt < SKEW_DELAYS.length && !(init.body instanceof ReadableStream)) {
+      let text = '';
+      try { text = await res.clone().text(); } catch (e) { text = ''; }
+      if (isSkewText(text)) {
+        cloud.skewRetries++;
+        renderConnInfo();
+        await sleep(SKEW_DELAYS[attempt]);
+        continue;
+      }
+    }
+    return res;
+  }
+}
+/* Device clock vs. Supabase: a freshly issued token's iat is the server's "now". */
+function tokenClaims(tok){
+  try { return JSON.parse(decodeURIComponent(escape(atob(String(tok).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))))); }
+  catch (e) { return null; }
+}
+function measureSkew(session){
+  const c = session && session.access_token ? tokenClaims(session.access_token) : null;
+  if (!c || !c.iat) return;
+  cloud.skew = Math.round(Date.now() / 1000 - c.iat);   // + : this device is ahead of the server
+  renderConnInfo();
 }
 
 function jwtRole(key){
@@ -2870,6 +3507,10 @@ function friendlyError(e){
   const code = String(e.code || '');
   const msg = String(e.message || e.error_description || e.msg || e);
   if (code === 'gone') return '이 기도문은 이미 삭제되었습니다.';
+  if (code === 'PGRST303' || isSkewText(msg)) {
+    return '서버 인증 시각이 잠시 어긋났습니다. 몇 초 뒤 자동으로 다시 연결합니다.' +
+      (Math.abs(cloud.skew || 0) > 90 ? ' 이 기기의 시계가 맞지 않습니다. 기기 설정에서 ‘자동으로 날짜 및 시간 설정’을 켜 주세요.' : '');
+  }
   if (code === 'auto_credentials') return 'index.html의 SYNC_ACCOUNT_EMAIL 또는 SYNC_ACCOUNT_PASSWORD가 Supabase에 만든 계정과 다릅니다. 대시보드 → Authentication → Users에서 이메일을 확인하고, 필요하면 비밀번호를 새로 정해 같은 값으로 입력하세요.';
   if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) return '동기화 코드가 맞지 않습니다. 다시 확인해 주세요.';
   if (code === 'email_not_confirmed' || /email not confirmed/i.test(msg)) return '동기화 계정이 아직 확인되지 않았습니다. 대시보드에서 계정을 만들 때 “Auto Confirm User”를 체크하세요.';
@@ -3006,6 +3647,19 @@ const api = {
   async setCategoryOrders(changes){
     await Promise.all(changes.map(c =>
       cloud.sb.from('prayer_categories').update({ sort_order: c.sort_order }).eq('id', c.id).then(must)));
+  },
+  /* public.profiles — one row per account (see supabase-profile.sql) */
+  async fetchProfile(){
+    return must(await cloud.sb.from('profiles').select('name,bio,email,avatar,updated_at').eq('user_id', cloud.user.id).maybeSingle());
+  },
+  async saveProfile(p){
+    return must(await cloud.sb.from('profiles').upsert({
+      user_id: cloud.user.id, name: p.name, bio: p.bio, email: p.email, avatar: p.avatar,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' }).select('name,bio,email,avatar,updated_at').single());
+  },
+  async deleteProfile(){
+    must(await cloud.sb.from('profiles').delete().eq('user_id', cloud.user.id));
   }
 };
 
@@ -3176,7 +3830,17 @@ async function initCloud(){
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: authStorage, storageKey: 'prayer.v1.auth' },
       global: { fetch: timedFetch }
     });
+    try {
+      cloud.sb.auth.onAuthStateChange((ev, s) => {
+        if (ev === 'TOKEN_REFRESHED' || ev === 'SIGNED_IN') measureSkew(s);
+        // A fresh token also goes to the realtime socket (it would otherwise keep the old one).
+        if (ev === 'TOKEN_REFRESHED' && s && cloud.sb.realtime && typeof cloud.sb.realtime.setAuth === 'function') {
+          try { cloud.sb.realtime.setAuth(s.access_token); } catch (e) {}
+        }
+      });
+    } catch (e) {}
   }
+  clearTimeout(cloud.retryTimer);
   cloud.phase = cloud.user ? 'loading' : 'connecting';
   cloud.error = '';
   setSync(); route();
@@ -3198,6 +3862,7 @@ async function initCloud(){
         throw res.error;
       }
       session = res.data.session || { user: res.data.user };
+      measureSkew(res.data.session);
     } else if (!session) {
       const res = await cloud.sb.auth.signInAnonymously();          // per-browser anonymous account
       if (res.error) {
@@ -3216,11 +3881,19 @@ async function initCloud(){
     if (run !== initRun) return;
     cloud.user = session.user;
     await finishConnect(run);
+    cloud.autoRetry = 0;
   } catch (e) {
     if (run !== initRun) return;
     cloud.phase = 'error';
     cloud.error = friendlyError(e);
     setSync(); route();
+    // Clock-skew and network blips heal by themselves: try again quietly a few times.
+    const msg = String(e && (e.message || e.msg || e) || '');
+    const transient = String(e && e.code) === 'PGRST303' || isSkewText(msg) || /failed to fetch|networkerror|load failed|abort|timeout/i.test(msg);
+    if (transient && cloud.autoRetry < 4) {
+      cloud.autoRetry++;
+      cloud.retryTimer = setTimeout(() => { if (cloud.phase === 'error') initCloud(); }, 2500 * cloud.autoRetry);
+    }
   }
 }
 
@@ -3236,6 +3909,7 @@ async function finishConnect(run){
   setSync();
   subscribeRealtime();
   route();
+  loadProfile();
   if (moved) toast(`이 기기의 기도문 ${moved}개를 동기화 계정으로 옮겼습니다`, 'check');
 }
 
@@ -3319,6 +3993,7 @@ async function softReload({ notify = false } = {}){
   try {
     await loadCloudData();
     scheduleRefresh();
+    loadProfile();
     if (notify) toast('최신 데이터를 불러왔습니다', 'check');
   } catch (e) {
     if (notify) toast(friendlyError(e), 'info');
@@ -3448,6 +4123,16 @@ function renderConnInfo(){
   const mc = $('#connMultiCat');
   mc.textContent = cloud.multiCat === true ? '사용 중' : cloud.multiCat === false ? '데이터베이스 업데이트 필요' : '-';
   mc.className = cloud.multiCat === true ? 'is-ok' : cloud.multiCat === false ? 'is-err' : '';
+  const pf = $('#connProfile');
+  pf.textContent = profileState.remote === true ? '데이터베이스 (모든 기기 공유)' : profileState.remote === false ? '이 기기에만 — supabase-profile.sql 실행 필요' : '-';
+  pf.className = profileState.remote === true ? 'is-ok' : profileState.remote === false ? 'is-err' : '';
+  const ck = $('#connClock');
+  const sk = cloud.skew;
+  const retried = cloud.skewRetries ? ` · 시각 차이로 자동 재시도 ${cloud.skewRetries}회` : '';
+  if (sk === null || sk === undefined) ck.textContent = '-' + retried;
+  else if (Math.abs(sk) <= 90) ck.textContent = '정상' + retried;
+  else ck.textContent = `약 ${Math.max(1, Math.round(Math.abs(sk) / 60))}분 ${sk > 0 ? '빠름' : '느림'} — 기기의 자동 시간 설정을 켜 주세요` + retried;
+  ck.className = sk !== null && sk !== undefined && Math.abs(sk) > 90 ? 'is-err' : (sk !== null && sk !== undefined ? 'is-ok' : '');
   const cn = $('#catSchemaNote');
   cn.hidden = cloud.multiCat !== false;
   cn.textContent = '기도문 하나에 여러 카테고리를 붙이려면 Supabase 대시보드 → SQL Editor에서 새 supabase-schema.sql 전체를 한 번 실행하세요. 기존 기도문과 카테고리는 그대로 보존됩니다. 실행한 뒤 ‘다시 불러오기’를 누르면 바로 적용됩니다.';
@@ -3524,6 +4209,9 @@ function syncRange(){
   $$('#verseTrGroup input').forEach(i => { i.checked = i.value === settings.verseTr; });
   $$('#versePoolGroup input').forEach(i => { i.checked = i.value === settings.versePool; });
   $$('#verseCycleGroup input').forEach(i => { i.checked = i.value === settings.verseCycle; });
+  $$('#todaySrcGroup input').forEach(i => { i.checked = i.value === settings.todaySrc; });
+  $('#todayApi').value = settings.todayApi;
+  renderTodayInfo();
 }
 function syncBgControls(){
   $$('#bgModeGroup input').forEach(i => { i.checked = i.value === settings.bgMode; });
@@ -4252,6 +4940,633 @@ function drawBackground(force = false){
 }
 
 /* ------------------------------------------------------------
+   Dialog helpers
+   ------------------------------------------------------------ */
+function openDlg(dlg, focusEl){
+  if (!dlg) return;
+  if (hasDialog) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
+  const panel = dlg.querySelector('.modal-panel');
+  if (panel) panel.scrollTop = 0;
+  if (focusEl) focusEl.focus({ preventScroll:true });
+}
+function closeDlg(dlg){
+  if (!dlg) return;
+  if (hasDialog) { if (dlg.open) dlg.close(); } else dlg.removeAttribute('open');
+}
+function downloadBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const safeName = s => String(s || '기도문').replace(/[\\/:*?"<>|\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40) || '기도문';
+const loadImage = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+
+/* ------------------------------------------------------------
+   Profile (이미지 · 이름 · 자기소개 · 이메일)
+   [Supabase · public.profiles]  계정당 1행 — supabase-profile.sql 로 만듭니다.
+     user_id uuid PK (auth.uid()) · name text · bio text · email text
+     avatar text (256×256 JPEG data URL, 약 20~40KB) · updated_at timestamptz
+   테이블이 아직 없으면 이 브라우저(localStorage 'prayer.v1.profile')에만 저장하고,
+   테이블을 만든 뒤 처음 연결될 때 자동으로 데이터베이스에 올립니다.
+   ------------------------------------------------------------ */
+const KEY_PROFILE = 'prayer.v1.profile';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function normProfile(p){
+  if (!p || typeof p !== 'object') return null;
+  const o = {
+    name: String(p.name || '').trim().slice(0, 30),
+    bio: String(p.bio || '').trim().slice(0, 300),
+    email: String(p.email || '').trim().slice(0, 120),
+    avatar: /^data:image\/(jpeg|png|webp);base64,/.test(String(p.avatar || '')) ? String(p.avatar) : '',
+    synced: !!p.synced
+  };
+  return (o.name || o.bio || o.email || o.avatar) ? o : null;
+}
+const profileState = { data: normProfile(store.get(KEY_PROFILE, null)), remote: null, avatarDraft: undefined, busy: false };
+const myName = () => (profileState.data && profileState.data.name) || '';
+function profileTableMissing(e){
+  const code = String(e && e.code || ''), msg = String(e && (e.message || e.details || e.hint) || '');
+  return code === '42P01' || code === 'PGRST205' || (/profiles/i.test(msg) && /does not exist|schema cache|could not find/i.test(msg));
+}
+function setLocalProfile(p){
+  profileState.data = p ? normProfile(p) : null;
+  if (profileState.data) store.set(KEY_PROFILE, profileState.data);
+  else { try { localStorage.removeItem(KEY_PROFILE); } catch (e) {} }
+  renderProfileButton();
+}
+let profileRun = 0;
+async function loadProfile(){
+  if (!cloud.sb || !cloud.user || cloud.phase !== 'ready') return;
+  const run = ++profileRun;
+  try {
+    const row = await api.fetchProfile();
+    if (run !== profileRun) return;
+    profileState.remote = true;
+    const remote = normProfile(row);
+    const local = profileState.data;
+    if (remote) setLocalProfile(Object.assign(remote, { synced:true }));
+    else if (local && !local.synced) {
+      // Made on this device before the table existed: upload it once.
+      const saved = normProfile(await api.saveProfile(local));
+      if (saved) setLocalProfile(Object.assign(saved, { synced:true }));
+    } else if (local && local.synced) setLocalProfile(null);   // deleted on another device
+  } catch (e) {
+    if (run !== profileRun) return;
+    if (profileTableMissing(e)) profileState.remote = false;
+  }
+  renderProfileButton();
+  renderConnInfo();
+}
+function avatarHtml(p, size){
+  if (p && p.avatar) return `<img src="${esc(p.avatar)}" alt="" width="${size}" height="${size}">`;
+  if (p && p.name) return `<span class="avatar-initial">${esc(Array.from(p.name)[0])}</span>`;
+  return icon('user', Math.round(size * 0.5));
+}
+function renderProfileButton(){
+  const b = $('#btnProfile');
+  if (!b) return;
+  const p = profileState.data;
+  b.innerHTML = avatarHtml(p, 46);
+  b.classList.toggle('empty', !p);
+  const label = p ? `프로필: ${p.name || '이름 없음'}` : '프로필 만들기';
+  b.setAttribute('aria-label', label);
+  b.title = label;
+}
+function renderProfileAvatarPreview(){
+  const cur = profileState.avatarDraft !== undefined ? profileState.avatarDraft : (profileState.data ? profileState.data.avatar : '');
+  const name = $('#pfName').value.trim();
+  $('#pfAvatar').innerHTML = avatarHtml({ avatar: cur, name }, 96);
+  $('#pfPhotoDel').hidden = !cur;
+  $('#pfPick').textContent = cur ? '사진 바꾸기' : '사진 선택';
+}
+function profileCounts(){
+  $('#pfNameCount').textContent = `${$('#pfName').value.length} / 30`;
+  $('#pfBioCount').textContent = `${$('#pfBio').value.length} / 300`;
+}
+function openProfile(){
+  const p = profileState.data;
+  profileState.avatarDraft = undefined;
+  $('#pfTitle').textContent = p ? '프로필 수정' : '프로필 만들기';
+  $('#pfName').value = p ? p.name : '';
+  $('#pfBio').value = p ? p.bio : '';
+  $('#pfEmail').value = p ? p.email : '';
+  $('#pfNameErr').textContent = ''; $('#pfEmailErr').textContent = '';
+  $('#pfEmail').classList.remove('is-invalid');
+  $('#pfDelete').hidden = !p;
+  $('#pfNote').textContent = profileState.remote === true
+    ? '프로필은 데이터베이스에 저장되어 모든 기기에서 같이 보입니다.'
+    : profileState.remote === false
+      ? '데이터베이스에 profiles 테이블이 아직 없어 이 기기에만 저장됩니다. Supabase → SQL Editor에서 supabase-profile.sql을 한 번 실행하면 다음 접속부터 모든 기기에 함께 저장됩니다.'
+      : '데이터베이스에 연결되면 모든 기기에 함께 저장됩니다.';
+  renderProfileAvatarPreview();
+  profileCounts();
+  openDlg($('#profileDlg'), $('#pfTitle'));
+}
+/* Center-crops to a square and shrinks to 256 px, so the whole picture is ~20–40 KB. */
+async function avatarFromFile(file){
+  const src = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(src);
+    const s = Math.min(img.naturalWidth, img.naturalHeight);
+    if (!s) return '';
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, 256, 256);
+    return c.toDataURL('image/jpeg', 0.86);
+  } finally { URL.revokeObjectURL(src); }
+}
+async function saveProfileForm(){
+  if (profileState.busy) return;
+  const name = $('#pfName').value.trim(), bio = $('#pfBio').value.trim(), email = $('#pfEmail').value.trim();
+  const avatar = profileState.avatarDraft !== undefined ? profileState.avatarDraft : (profileState.data ? profileState.data.avatar : '');
+  $('#pfNameErr').textContent = ''; $('#pfEmailErr').textContent = '';
+  $('#pfEmail').classList.remove('is-invalid');
+  if (email && !EMAIL_RE.test(email)) {
+    $('#pfEmailErr').textContent = '이메일 형식을 확인해 주세요. 예: name@example.com';
+    $('#pfEmail').classList.add('is-invalid'); $('#pfEmail').focus();
+    return;
+  }
+  if (!name && !bio && !email && !avatar) {
+    $('#pfNameErr').textContent = '이름이나 사진 중 하나는 입력해 주세요.';
+    $('#pfName').focus();
+    return;
+  }
+  const data = { name, bio, email, avatar, synced:false };
+  profileState.busy = true;
+  setBusy($('#pfSave'), true, '저장 중…');
+  let where = 'local';
+  try {
+    if (cloud.phase === 'ready' && cloud.user && profileState.remote !== false) {
+      try {
+        const saved = normProfile(await cloudOp(() => api.saveProfile(data), { silent:true }));
+        profileState.remote = true;
+        Object.assign(data, saved || {}, { synced:true });
+        where = 'db';
+      } catch (e) {
+        if (profileTableMissing(e)) profileState.remote = false;
+        else { toast(friendlyError(e), 'info'); return; }
+      }
+    }
+    setLocalProfile(data);
+    closeDlg($('#profileDlg'));
+    renderConnInfo();
+    toast(where === 'db' ? '프로필을 저장했습니다' : '프로필을 이 기기에 저장했습니다 (supabase-profile.sql을 실행하면 모든 기기에 공유)', where === 'db' ? 'check' : 'info');
+  } finally {
+    profileState.busy = false;
+    setBusy($('#pfSave'), false);
+  }
+}
+async function deleteProfileForm(){
+  const ok = await confirmDialog({ title:'프로필을 지울까요?', message:'사진, 이름, 자기소개, 이메일이 모두 지워집니다. 기도문은 그대로 남습니다.', confirm:'지우기', danger:true });
+  if (!ok) return;
+  if (cloud.phase === 'ready' && profileState.remote === true) {
+    try { await cloudOp(() => api.deleteProfile()); } catch (e) { return; }
+  }
+  setLocalProfile(null);
+  closeDlg($('#profileDlg'));
+  toast('프로필을 지웠습니다', 'check');
+}
+
+/* ------------------------------------------------------------
+   Save as image (글 + 배경 → JPEG)
+   PC와 모바일 크기 중에서 골라 저장합니다. 글이 길면 글자를 줄여 맞추고,
+   그래도 넘치면 여러 장(1/3, 2/3 …)으로 나눕니다.
+   ------------------------------------------------------------ */
+const IMG_SIZES = [
+  { id:'mobile',  name:'모바일',   w:1080, h:1920 },
+  { id:'portrait', name:'세로 4:5', w:1080, h:1350 },
+  { id:'square',  name:'정사각',   w:1080, h:1080 },
+  { id:'tablet',  name:'태블릿',   w:1536, h:2048 },
+  { id:'pc',      name:'PC',       w:1920, h:1080 },
+  { id:'pcqhd',   name:'PC 고화질', w:2560, h:1440 }
+];
+const imgState = { payload:null, page:0, pages:1, fileImg:null, srcCache:new Map(), token:0, timer:0 };
+const canvasFilterOk = (() => {
+  try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(2px)'; return c.filter === 'blur(2px)'; } catch (e) { return false; }
+})();
+function imgSize(){ return IMG_SIZES.find(s => s.id === settings.img.size) || IMG_SIZES[0]; }
+function payloadFromPrayer(p){
+  return { title: p.title, content: p.content, date: p.date, cats: catsOf(p), source: '' };
+}
+function openImageDialog(id, payload){
+  const p = id ? findItem(id) : null;
+  imgState.payload = payload || (p ? payloadFromPrayer(p) : null);
+  if (!imgState.payload) return;
+  if (autoScroll.playing) autoScroll.stop();
+  imgState.page = 0;
+  const s = settings.img;
+  if (s.bg === 'file' && !imgState.fileImg) s.bg = 'current';
+  $('#imSizes').innerHTML = IMG_SIZES.map(z => {
+    const k = 30 / Math.max(z.w, z.h);
+    return `<label class="size-opt"><input type="radio" name="imSize" value="${z.id}"${z.id === s.size ? ' checked' : ''}>
+      <span><i style="width:${Math.round(z.w * k)}px;height:${Math.round(z.h * k)}px"></i>${esc(z.name)}<small>${z.w}×${z.h}</small></span></label>`;
+  }).join('');
+  $$('#imBgGroup input').forEach(i => { i.checked = i.value === s.bg; });
+  $$('#imAlignGroup input').forEach(i => { i.checked = i.value === s.align; });
+  const setR = (id, v, out, fmt) => { const r = $(id); r.value = v; fillRange(r); $(out).textContent = fmt(v); };
+  setR('#imBlur', s.blur, '#imBlurOut', v => v + 'px');
+  setR('#imDim', s.dim, '#imDimOut', v => Math.round(v * 100) + '%');
+  setR('#imScale', s.scale, '#imScaleOut', v => Math.round(v * 100) + '%');
+  $('#imShowTitle').checked = s.title; $('#imShowDate').checked = s.date;
+  $('#imShowName').checked = s.name; $('#imShowMark').checked = s.mark;
+  $('#imShowName').parentElement.hidden = !myName();
+  $('#imShareBtn').hidden = !(navigator.share && navigator.canShare);
+  $('.img-actions').style.gridTemplateColumns = $('#imShareBtn').hidden ? '1fr' : '';
+  openDlg($('#imgDlg'), $('#imTitle'));
+  renderImagePreview();
+}
+function scheduleImagePreview(){
+  clearTimeout(imgState.timer);
+  imgState.timer = setTimeout(renderImagePreview, 70);
+}
+/* Scale the full-size canvas down to fit the preview frame (CSS size only). */
+function fitPreview(){
+  const cv = $('#imCanvas'), st = $('#imStage');
+  if (!cv || !st || !cv.width) return;
+  const cs = getComputedStyle(st);
+  const aw = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const ah = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const k = Math.min(aw / cv.width, ah / cv.height);
+  if (!(k > 0)) return;
+  cv.style.width = Math.floor(cv.width * k) + 'px';
+  cv.style.height = Math.floor(cv.height * k) + 'px';
+}
+async function renderImagePreview(){
+  const tk = ++imgState.token;
+  const z = imgSize();
+  const cv = $('#imCanvas');
+  try {
+    const info = await drawPrayerImage(cv, z.w, z.h, imgState.page);
+    if (tk !== imgState.token) return;
+    fitPreview();
+    imgState.pages = info.pages;
+    if (imgState.page >= info.pages) { imgState.page = info.pages - 1; return renderImagePreview(); }
+    $('#imPager').hidden = info.pages < 2;
+    $('#imPageText').textContent = `${imgState.page + 1} / ${info.pages}장`;
+    $('#imPrevPage').disabled = imgState.page <= 0;
+    $('#imNextPage').disabled = imgState.page >= info.pages - 1;
+    const note = $('#imNote');
+    note.classList.toggle('warn', !!info.warn);
+    note.textContent = [info.warn, info.pages > 1
+      ? `글이 길어 ${info.pages}장으로 나누어 저장합니다. 한 장에 담으려면 ‘글자 크기’를 줄이거나 세로로 긴 크기를 고르세요.`
+      : `${z.w}×${z.h} JPEG로 저장합니다.`].filter(Boolean).join(' ');
+    $('#imSaveBtn').innerHTML = icon('download', 18) + (info.pages > 1 ? `${info.pages}장 저장` : '저장');
+  } catch (e) {
+    $('#imNote').textContent = '미리보기를 만들지 못했습니다.';
+  }
+}
+/* Background sources → an image/canvas to draw with "cover" fit. */
+async function imgBackgroundSource(W, H){
+  const mode = settings.img.bg;
+  if (mode === 'file' && imgState.fileImg) return { src: imgState.fileImg };
+  if (mode === 'plain') return { plain:true };
+  if (mode === 'current' && bgE.current) {
+    try {
+      let img = imgState.srcCache.get(bgE.current);
+      if (!img) { img = await loadImage(bgE.current); imgState.srcCache.set(bgE.current, img); }
+      return { src: img };
+    } catch (e) { /* fall through to the scene */ }
+  }
+  // 기본 장면 (the procedural scene used as the app background)
+  const c = document.createElement('canvas');
+  const k = 4;
+  c.width = Math.max(120, Math.round(W / k)); c.height = Math.max(160, Math.round(H / k));
+  const scene = SCENES[settings.scene] || SCENES.meadow;
+  scene.draw(c.getContext('2d'), c.width, c.height, rng(scene.seed));
+  return { src: c, scene:true, note: mode === 'current' ? '현재 배경이 기본 장면이라 장면으로 만듭니다.' : '' };
+}
+function drawCover(ctx, src, W, H, blur){
+  const sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
+  const pad = blur * 2.2;                       // overscan so blurred edges stay filled
+  const k = Math.max((W + pad * 2) / sw, (H + pad * 2) / sh);
+  const dw = sw * k, dh = sh * k, dx = (W - dw) / 2, dy = (H - dh) / 2;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (blur > 0.5 && canvasFilterOk) {
+    ctx.filter = `blur(${blur}px)`;
+    ctx.drawImage(src, dx, dy, dw, dh);
+    ctx.filter = 'none';
+  } else if (blur > 0.5) {
+    // Safari without ctx.filter: blur by shrinking and scaling back up (twice, for smoothness).
+    const f = Math.max(1.5, blur / 2.2);
+    const a = document.createElement('canvas');
+    a.width = Math.max(2, Math.round(W / f)); a.height = Math.max(2, Math.round(H / f));
+    const ac = a.getContext('2d');
+    ac.imageSmoothingQuality = 'high';
+    ac.drawImage(src, dx / f, dy / f, dw / f, dh / f);
+    const b = document.createElement('canvas');
+    b.width = Math.max(2, Math.round(a.width / 2)); b.height = Math.max(2, Math.round(a.height / 2));
+    b.getContext('2d').drawImage(a, 0, 0, b.width, b.height);
+    ac.clearRect(0, 0, a.width, a.height);
+    ac.drawImage(b, 0, 0, a.width, a.height);
+    ctx.drawImage(a, 0, 0, W, H);
+  } else {
+    ctx.drawImage(src, dx, dy, dw, dh);
+  }
+}
+/* Word wrap for Korean: keep words together (keep-all), break a word only if it can't fit. */
+function wrapLines(ctx, text, maxW){
+  const out = [];
+  const fits = t => ctx.measureText(t).width <= maxW;
+  const paras = String(text).replace(/\r/g, '').split(/\n[ \t]*\n+/).map(s => s.replace(/^\n+|\n+$/g, '')).filter(s => s.trim());
+  paras.forEach((par, pi) => {
+    let firstInPara = true;
+    const emit = t => { out.push({ text: t, para: pi > 0 && firstInPara }); firstInPara = false; };
+    par.split('\n').forEach(line => {
+      const words = line.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) { emit(''); return; }
+      let cur = '';
+      for (const w of words) {
+        const trial = cur ? cur + ' ' + w : w;
+        if (fits(trial)) { cur = trial; continue; }
+        if (cur) { emit(cur); cur = ''; }
+        if (fits(w)) { cur = w; continue; }
+        let piece = '';
+        for (const ch of Array.from(w)) {
+          if (piece && !fits(piece + ch)) { emit(piece); piece = ch; } else piece += ch;
+        }
+        cur = piece;
+      }
+      if (cur) emit(cur);
+    });
+  });
+  return out;
+}
+async function ensureFonts(sample){
+  if (!document.fonts || !document.fonts.load) return;
+  const fams = ['"Gowun Batang"', '"Pretendard Variable"'];
+  const jobs = [];
+  fams.forEach(f => { jobs.push(document.fonts.load(`400 40px ${f}`, sample)); jobs.push(document.fonts.load(`700 40px ${f}`, sample)); });
+  await Promise.race([Promise.allSettled(jobs), sleep(3000)]);
+}
+/* Draws page `page` of the current payload onto `cv` (W×H). Returns { pages, warn }. */
+async function drawPrayerImage(cv, W, H, page){
+  const P = imgState.payload, s = settings.img;
+  const serif = settings.readFont !== 'sans';
+  const FB = serif ? '"Gowun Batang", "Nanum Myeongjo", serif' : '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif';
+  const FU = '"Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+  const name = s.name ? myName() : '';
+  const metaText = [s.date && P.date ? fmtDot(P.date) : '', (P.cats || []).slice(0, 3).join(' · ')].filter(Boolean).join('   ·   ');
+  await ensureFonts(P.title + P.content + name + metaText + 'Prayer0123456789·—/');
+  const bgSrc = await imgBackgroundSource(W, H);
+
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const S = Math.min(W, H), portrait = H >= W;
+  const blur = s.blur * (Math.max(W, H) / 1100);
+
+  // ---- background
+  if (bgSrc.plain) {
+    const g = ctx.createLinearGradient(0, 0, W * .4, H);
+    g.addColorStop(0, '#2b4436'); g.addColorStop(.55, '#15241c'); g.addColorStop(1, '#0b140f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const r = ctx.createRadialGradient(W * .2, H * .12, 0, W * .2, H * .12, S * .9);
+    r.addColorStop(0, 'rgba(255,226,176,.22)'); r.addColorStop(1, 'rgba(255,226,176,0)');
+    ctx.fillStyle = r; ctx.fillRect(0, 0, W, H);
+  } else {
+    ctx.fillStyle = '#0c1712'; ctx.fillRect(0, 0, W, H);
+    drawCover(ctx, bgSrc.src, W, H, bgSrc.scene ? Math.max(blur, 18 * (Math.max(W, H) / 1100)) : blur);
+  }
+  ctx.fillStyle = `rgba(0,0,0,${s.dim})`;
+  ctx.fillRect(0, 0, W, H);
+  const vg = ctx.createRadialGradient(W / 2, H * .45, S * .3, W / 2, H * .5, Math.max(W, H) * .78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.38)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  // ---- layout box
+  const mx = portrait ? W * .1 : W * .12, my = portrait ? H * .085 : H * .11;
+  const boxW = portrait ? W - mx * 2 : Math.min(W - mx * 2, S * 1.1);
+  const boxX = (W - boxW) / 2;
+  const center = s.align === 'center';
+  const tx = center ? W / 2 : boxX;
+  const footH = (name || s.mark) ? S * .075 : 0;
+  const top = my, bottom = H - my - footH;
+
+  const lhK = Math.max(1.55, Math.min(2.0, settings.lineHeight || 1.8));
+  const measureFor = fs => {
+    ctx.font = `400 ${fs}px ${FB}`;
+    const lines = wrapLines(ctx, P.content, boxW);
+    const tfs = fs * 1.42;
+    ctx.font = `700 ${tfs}px ${FB}`;
+    const tLines = s.title ? wrapLines(ctx, P.title, boxW).slice(0, 3) : [];
+    const metaH = metaText ? fs * .62 * 1.4 + fs * .9 : 0;
+    const titleH = tLines.length ? tLines.length * tfs * 1.3 + fs * 1.3 : 0;
+    const lh = fs * lhK, pg = lh * .45;
+    return { fs, tfs, lines, tLines, metaH, titleH, lh, pg };
+  };
+  const heightOf = (L, from = 0, to = L.lines.length) => {
+    let h = 0;
+    for (let i = from; i < to; i++) h += L.lh + (L.lines[i].para && i > from ? L.pg : 0);
+    return h;
+  };
+  const availH = bottom - top;
+  const target = S * .04 * s.scale, minFs = S * .027 * s.scale;
+  let L = measureFor(target);
+  if (L.metaH + L.titleH + heightOf(L) > availH) {
+    let lo = minFs, hi = target;
+    for (let k = 0; k < 14; k++) {
+      const mid = (lo + hi) / 2;
+      const M = measureFor(mid);
+      if (M.metaH + M.titleH + heightOf(M) <= availH) lo = mid; else hi = mid;
+    }
+    L = measureFor(lo);
+    // Still too long at the smallest size: split into pages at a comfortable size instead.
+    if (L.metaH + L.titleH + heightOf(L) > availH) L = measureFor(Math.max(minFs, target * .9));
+  }
+  // ---- pagination (only when even the smallest size overflows)
+  const pages = [];
+  {
+    let i = 0, first = true;
+    while (i < L.lines.length || first) {
+      const cap = availH - (first ? L.metaH + L.titleH : L.metaH);
+      let h = 0, j = i;
+      while (j < L.lines.length) {
+        const add = L.lh + (L.lines[j].para && j > i ? L.pg : 0);
+        if (h + add > cap && j > i) break;
+        h += add; j++;
+      }
+      pages.push([i, j]);
+      i = j; first = false;
+      if (pages.length > 30) break;
+    }
+  }
+  const pg = Math.max(0, Math.min(page, pages.length - 1));
+  const [from, to] = pages[pg];
+  const firstPage = pg === 0;
+  const blockH = (L.metaH) + (firstPage ? L.titleH : 0) + heightOf(L, from, to);
+  let y = pages.length > 1 && !(pg === pages.length - 1) ? top : top + Math.max(0, (availH - blockH) * (portrait ? .42 : .5));
+
+  ctx.textAlign = center ? 'center' : 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = 'rgba(0,0,0,.38)';
+  ctx.shadowBlur = S * .014;
+  ctx.shadowOffsetY = S * .002;
+
+  if (L.metaH) {
+    ctx.font = `500 ${L.fs * .62}px ${FU}`;
+    ctx.fillStyle = 'rgba(255,255,255,.78)';
+    const mt = (pages.length > 1 && !firstPage) ? `${P.title}  ·  ${pg + 1} / ${pages.length}` : metaText;
+    y += L.fs * .62;
+    ctx.fillText(mt, tx, y);
+    y += L.fs * .62 * .4 + L.fs * .9;
+  }
+  if (firstPage && L.tLines.length) {
+    ctx.font = `700 ${L.tfs}px ${FB}`;
+    ctx.fillStyle = '#ffffff';
+    L.tLines.forEach(t => { y += L.tfs * 1.3; ctx.fillText(t.text, tx, y - L.tfs * .3); });
+    const ruleW = Math.min(boxW * .22, S * .09);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,226,176,.85)';
+    ctx.fillRect(center ? W / 2 - ruleW / 2 : tx, y + L.fs * .45, ruleW, Math.max(2, S * .0025));
+    ctx.shadowBlur = S * .014;
+    y += L.fs * 1.3;
+  }
+  ctx.font = `400 ${L.fs}px ${FB}`;
+  ctx.fillStyle = 'rgba(255,255,255,.96)';
+  for (let i = from; i < to; i++) {
+    const ln = L.lines[i];
+    if (ln.para && i > from) y += L.pg;
+    y += L.lh;
+    ctx.fillText(ln.text, tx, y - (L.lh - L.fs) / 2 - L.fs * .12);
+  }
+
+  // ---- footer: name · page · mark
+  const fy = H - my * .82;
+  ctx.shadowBlur = S * .01;
+  if (name) {
+    ctx.font = `400 ${S * .026}px ${FB}`;
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
+    ctx.textAlign = center ? 'center' : 'left';
+    ctx.fillText('— ' + name, center ? W / 2 : boxX, fy - (s.mark && center ? S * .036 : 0));
+  }
+  if (s.mark) {
+    ctx.font = `600 ${S * .02}px ${FU}`;
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.textAlign = center ? 'center' : 'right';
+    ctx.fillText('Prayer' + (pages.length > 1 ? `   ${pg + 1}/${pages.length}` : ''), center ? W / 2 : boxX + boxW, fy);
+  } else if (pages.length > 1) {
+    ctx.font = `500 ${S * .02}px ${FU}`;
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${pg + 1} / ${pages.length}`, boxX + boxW, fy);
+  }
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  return { pages: pages.length, warn: bgSrc.note || '' };
+}
+async function buildImageFiles(){
+  const z = imgSize();
+  const c = document.createElement('canvas');
+  const first = await drawPrayerImage(c, z.w, z.h, 0);
+  const base = `${safeName(imgState.payload.title)}_${z.w}x${z.h}`;
+  const out = [];
+  for (let i = 0; i < first.pages; i++) {
+    if (i) await drawPrayerImage(c, z.w, z.h, i);
+    const blob = await new Promise((res, rej) => {
+      try { c.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/jpeg', 0.92); } catch (e) { rej(e); }
+    });
+    out.push(new File([blob], first.pages > 1 ? `${base}_${i + 1}.jpg` : `${base}.jpg`, { type:'image/jpeg', lastModified: Date.now() }));
+  }
+  return out;
+}
+function imageExportError(e){
+  const tainted = e && (e.name === 'SecurityError' || /taint|insecure|security/i.test(String(e.message)));
+  toast(tainted ? '이 배경 이미지는 다른 사이트에 있어 저장할 수 없습니다. ‘사진 선택’이나 ‘기본 장면’을 골라 주세요.' : '이미지를 만들지 못했습니다. 다시 시도해 주세요.', 'info');
+}
+async function saveImages(){
+  const btn = $('#imSaveBtn');
+  setBusy(btn, true, '만드는 중…');
+  try {
+    const files = await buildImageFiles();
+    for (let i = 0; i < files.length; i++) {
+      downloadBlob(files[i], files[i].name);
+      if (i < files.length - 1) await sleep(450);
+    }
+    toast(files.length > 1 ? `이미지 ${files.length}장을 저장했습니다` : '이미지를 저장했습니다', 'check');
+  } catch (e) { imageExportError(e); }
+  finally { setBusy(btn, false); }
+}
+async function shareImages(){
+  const btn = $('#imShareBtn');
+  setBusy(btn, true, '준비 중…');
+  try {
+    const files = await buildImageFiles();
+    if (!navigator.canShare || !navigator.canShare({ files })) { toast('이 브라우저는 이미지 공유를 지원하지 않습니다. 저장한 뒤 보내 주세요.', 'info'); return; }
+    await navigator.share({ files, title: imgState.payload.title });
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    imageExportError(e);
+  } finally { setBusy(btn, false); }
+}
+
+/* ------------------------------------------------------------
+   Send (기도문 보내기) — Web Share(카카오톡·문자·메일 등 휴대폰 공유 메뉴), 이메일,
+   문자, 텍스트 파일, 복사. 앱 주소는 모든 기도문이 보이는 주소라 함께 보내지 않습니다.
+   ------------------------------------------------------------ */
+const shareState = { id:null };
+function shareText(p){
+  const name = settings.shareName ? myName() : '';
+  const tail = [settings.shareDate && p.date ? fmtDot(p.date) : '', name ? '— ' + name : ''].filter(Boolean).join('\n');
+  return `${p.title}\n\n${String(p.content).trim()}${tail ? '\n\n' + tail : ''}`;
+}
+function openShareDialog(id){
+  const p = findItem(id);
+  if (!p) return;
+  shareState.id = id;
+  $('#shWhat').textContent = `‘${p.title}’`;
+  $('#shWithName').checked = settings.shareName;
+  $('#shWithName').parentElement.hidden = !myName();
+  $('#shWithDate').checked = settings.shareDate;
+  const coarse = window.matchMedia('(pointer:coarse)').matches;
+  const me = profileState.data && profileState.data.email;
+  const rows = [
+    navigator.share ? ['native', 'share', '휴대폰 공유 메뉴로 보내기', '카카오톡·문자·메일·메모 등 설치된 앱을 골라 보냅니다'] : null,
+    ['image', 'image', '이미지로 보내기', '배경과 함께 이미지로 만들어 저장하거나 공유합니다'],
+    ['mail', 'mail', '이메일로 보내기', '메일 앱에 제목과 본문을 채워 엽니다'],
+    me ? ['mailme', 'mail', '나에게 메일 보내기', me] : null,
+    coarse ? ['sms', 'chat', '문자로 보내기', '문자 앱에 본문을 채워 엽니다'] : null,
+    ['txt', 'fileText', '텍스트 파일로 저장', '.txt 파일로 내려받습니다'],
+    ['copy', 'copy', '복사하기', '다른 앱에 붙여 넣을 수 있게 복사합니다']
+  ].filter(Boolean);
+  $('#shList').innerHTML = rows.map(([k, ic, b, sm]) =>
+    `<button type="button" class="share-item" data-share="${k}"><span class="si-ic">${icon(ic, 19)}</span><span><b>${esc(b)}</b><small>${esc(sm)}</small></span></button>`).join('');
+  openDlg($('#shareDlg'), $('#shTitle'));
+}
+async function doShare(kind){
+  const p = findItem(shareState.id);
+  if (!p) return;
+  const text = shareText(p);
+  const dlg = $('#shareDlg');
+  if (kind === 'native') {
+    try { await navigator.share({ title: p.title, text }); closeDlg(dlg); }
+    catch (e) { if (!e || e.name !== 'AbortError') toast('공유하지 못했습니다. 다른 방법을 골라 주세요.', 'info'); }
+  } else if (kind === 'image') {
+    closeDlg(dlg);
+    openImageDialog(p.id);
+  } else if (kind === 'mail' || kind === 'mailme') {
+    const to = kind === 'mailme' ? encodeURIComponent(profileState.data.email) : '';
+    const body = text.length > 1800 ? text.slice(0, 1800) + '\n…(이하 생략 — 전체는 텍스트 파일이나 복사로 보내 주세요)' : text;
+    location.href = `mailto:${to}?subject=${encodeURIComponent(p.title)}&body=${encodeURIComponent(body)}`;
+    closeDlg(dlg);
+  } else if (kind === 'sms') {
+    location.href = `sms:?&body=${encodeURIComponent(text)}`;
+    closeDlg(dlg);
+  } else if (kind === 'txt') {
+    downloadBlob(new Blob(['﻿' + text.replace(/\n/g, '\r\n')], { type:'text/plain;charset=utf-8' }), safeName(p.title) + '.txt');
+    toast('텍스트 파일로 저장했습니다', 'check');
+    closeDlg(dlg);
+  } else if (kind === 'copy') {
+    const ok = await copyText(text);
+    toast(ok ? '기도문을 복사했습니다' : '복사하지 못했습니다', ok ? 'check' : 'info');
+    if (ok) closeDlg(dlg);
+  }
+}
+
+/* ------------------------------------------------------------
    Static UI setup
    ------------------------------------------------------------ */
 function setupStatic(){
@@ -4266,6 +5581,16 @@ function setupStatic(){
   $('#rdEdit').innerHTML = icon('edit', 19);
   $('#rdDelete').innerHTML = icon('trash', 19);
   $('#rdCopy').innerHTML = icon('copy', 16) + '복사';
+  $('#rdImage').innerHTML = icon('image', 16) + '이미지';
+  $('#rdShare').innerHTML = icon('send', 16) + '보내기';
+  $('#pfClose').innerHTML = icon('x', 18);
+  $('#imClose').innerHTML = icon('x', 18);
+  $('#shClose').innerHTML = icon('x', 18);
+  $('#imPrevPage').innerHTML = icon('chevL', 16);
+  $('#imNextPage').innerHTML = icon('chevR', 16);
+  $('#imSaveBtn').innerHTML = icon('download', 18) + '저장';
+  $('#imShareBtn').innerHTML = icon('share', 18) + '공유';
+  renderProfileButton();
   $('#rdFocus').innerHTML = icon('focus', 19);
   $('#edDelete').innerHTML = icon('trash', 18) + '<span>이 기도문 삭제</span>';
   $('#viewCard').innerHTML = icon('grid', 18);
@@ -4354,6 +5679,22 @@ function bindEvents(){
       if (a === 'new') { state.verseSeed = act.dataset.seed === 'verse' ? dailyVerse() : null; go('#/new'); }
       else if (a === 'verse-next') nextVerse();
       else if (a === 'verse-copy') copyVerse();
+      else if (a === 'today-next') {
+        todayState.offset++; todayState.open = false;
+        if (settings.todaySrc === 'api') toast('외부 주소의 기도문은 하루에 하나입니다. 설정에서 출처를 바꿀 수 있습니다.', 'info');
+        renderToday();
+      }
+      else if (a === 'today-toggle') { todayState.open = !todayState.open; renderToday(); }
+      else if (a === 'today-copy') {
+        const tp = todayPayload();
+        if (tp) copyText(`${tp.title}\n\n${tp.content}`).then(ok => toast(ok ? '오늘의 기도문을 복사했습니다' : '복사하지 못했습니다', ok ? 'check' : 'info'));
+      }
+      else if (a === 'today-image') { const tp = todayPayload(); if (tp) openImageDialog(null, tp); }
+      else if (a === 'today-save') {
+        const tp = todayPayload();
+        if (tp) { state.verseSeed = { kind:'prayer', title: tp.title, text: tp.content, source: tp.source }; go('#/new'); }
+      }
+      else if (a === 'profile') openProfile();
       else if (a === 'settings') openSettings();
       else if (a === 'retry') initCloud();
       else if (a === 'verse-retry') loadDailyVerse({ force:true });
@@ -4410,12 +5751,11 @@ function bindEvents(){
   $('#asFaster').addEventListener('click', () => setScrollCpm(settings.scrollCpm + 20, { announce:true }));
   $('#rdSmaller').addEventListener('click', () => setReadSize(settings.readSize - .05));
   $('#rdLarger').addEventListener('click', () => setReadSize(settings.readSize + .05));
-  ['#rdPrev', '#rdNext'].forEach(sel => {
-    $(sel).addEventListener('click', e => {
-      const id = e.currentTarget.dataset.id;
-      if (id) go('#/p/' + encodeURIComponent(id), { replace:true });
-    });
+  ['#rdPrev', '#rdNext', '#asPrev', '#asNext'].forEach(sel => {
+    $(sel).addEventListener('click', e => goSibling(e.currentTarget.dataset.id));
   });
+  $('#rdImage').addEventListener('click', () => openImageDialog(state.route.id));
+  $('#rdShare').addEventListener('click', () => openShareDialog(state.route.id));
 
   // Editor
   const form = $('#editForm');
@@ -4625,6 +5965,99 @@ function bindEvents(){
     toast('모든 기도문을 삭제했습니다', 'check');
   });
 
+  // 오늘의 기도문 settings
+  $('#todaySrcGroup').addEventListener('change', e => {
+    if (e.target.name !== 'todaySrc') return;
+    settings.todaySrc = e.target.value; saveSettings();
+    todayState.offset = 0; todayState.open = false;
+    if (settings.todaySrc === 'api') loadTodayApi(); else { renderTodayIfHome(); renderTodayInfo(); }
+  });
+  const applyTodayApi = () => {
+    settings.todayApi = $('#todayApi').value.trim(); saveSettings();
+    if (settings.todaySrc === 'api') loadTodayApi({ force:true });
+  };
+  $('#todayApiTest').addEventListener('click', applyTodayApi);
+  $('#todayApi').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); applyTodayApi(); } });
+
+  // Profile dialog
+  const pDlg = $('#profileDlg');
+  $('#profileForm').addEventListener('submit', e => { e.preventDefault(); saveProfileForm(); });
+  $('#pfClose').addEventListener('click', () => closeDlg(pDlg));
+  $('#pfCancel').addEventListener('click', () => closeDlg(pDlg));
+  pDlg.addEventListener('click', e => { if (e.target === pDlg) closeDlg(pDlg); });
+  $('#pfPick').addEventListener('click', () => $('#pfFile').click());
+  $('#pfFile').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      const url = await avatarFromFile(f);
+      if (!url) throw new Error('empty');
+      profileState.avatarDraft = url;
+      renderProfileAvatarPreview();
+    } catch (err) { toast('사진을 읽지 못했습니다. JPG나 PNG 사진을 골라 주세요.', 'info'); }
+  });
+  $('#pfPhotoDel').addEventListener('click', () => { profileState.avatarDraft = ''; renderProfileAvatarPreview(); });
+  $('#pfName').addEventListener('input', () => { profileCounts(); renderProfileAvatarPreview(); $('#pfNameErr').textContent = ''; });
+  $('#pfBio').addEventListener('input', profileCounts);
+  $('#pfEmail').addEventListener('input', () => { $('#pfEmailErr').textContent = ''; $('#pfEmail').classList.remove('is-invalid'); });
+  $('#pfDelete').addEventListener('click', deleteProfileForm);
+
+  // Image dialog
+  const iDlg = $('#imgDlg');
+  $('#imClose').addEventListener('click', () => closeDlg(iDlg));
+  iDlg.addEventListener('click', e => { if (e.target === iDlg) closeDlg(iDlg); });
+  $('#imSizes').addEventListener('change', e => {
+    if (e.target.name !== 'imSize') return;
+    settings.img.size = e.target.value; saveSettings(); imgState.page = 0; scheduleImagePreview();
+  });
+  $('#imBgGroup').addEventListener('change', e => {
+    if (e.target.name !== 'imBg') return;
+    if (e.target.value === 'file' && !imgState.fileImg) { $('#imFile').click(); }
+    settings.img.bg = e.target.value; saveSettings(); scheduleImagePreview();
+  });
+  // Tapping "사진 선택" again lets you pick a different photo.
+  $$('#imBgGroup input[value="file"]').forEach(i => i.parentElement.addEventListener('click', () => {
+    if (i.checked && imgState.fileImg) $('#imFile').click();
+  }));
+  $('#imFile').addEventListener('change', async e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) { if (!imgState.fileImg) { settings.img.bg = 'current'; $$('#imBgGroup input').forEach(i => { i.checked = i.value === 'current'; }); scheduleImagePreview(); } return; }
+    const src = URL.createObjectURL(f);
+    try {
+      imgState.fileImg = await loadImage(src);
+      settings.img.bg = 'file'; saveSettings();
+      $$('#imBgGroup input').forEach(i => { i.checked = i.value === 'file'; });
+      scheduleImagePreview();
+    } catch (err) { toast('사진을 읽지 못했습니다. JPG나 PNG 사진을 골라 주세요.', 'info'); }
+  });
+  const imRange = (id, key, out, fmt) => $(id).addEventListener('input', e => {
+    settings.img[key] = parseFloat(e.target.value); fillRange(e.target);
+    $(out).textContent = fmt(settings.img[key]); saveSettings(); scheduleImagePreview();
+  });
+  imRange('#imBlur', 'blur', '#imBlurOut', v => v + 'px');
+  imRange('#imDim', 'dim', '#imDimOut', v => Math.round(v * 100) + '%');
+  imRange('#imScale', 'scale', '#imScaleOut', v => Math.round(v * 100) + '%');
+  $('#imAlignGroup').addEventListener('change', e => { if (e.target.name === 'imAlign') { settings.img.align = e.target.value; saveSettings(); scheduleImagePreview(); } });
+  [['#imShowTitle', 'title'], ['#imShowDate', 'date'], ['#imShowName', 'name'], ['#imShowMark', 'mark']].forEach(([id, key]) =>
+    $(id).addEventListener('change', e => { settings.img[key] = e.target.checked; saveSettings(); imgState.page = 0; scheduleImagePreview(); }));
+  $('#imPrevPage').addEventListener('click', () => { if (imgState.page > 0) { imgState.page--; renderImagePreview(); } });
+  $('#imNextPage').addEventListener('click', () => { if (imgState.page < imgState.pages - 1) { imgState.page++; renderImagePreview(); } });
+  $('#imSaveBtn').addEventListener('click', saveImages);
+  $('#imShareBtn').addEventListener('click', shareImages);
+
+  // Share dialog
+  const shDlg = $('#shareDlg');
+  $('#shClose').addEventListener('click', () => closeDlg(shDlg));
+  shDlg.addEventListener('click', e => { if (e.target === shDlg) closeDlg(shDlg); });
+  $('#shList').addEventListener('click', e => { const b = e.target.closest('[data-share]'); if (b) doShare(b.dataset.share); });
+  $('#shWithName').addEventListener('change', e => { settings.shareName = e.target.checked; saveSettings(); });
+  $('#shWithDate').addEventListener('change', e => { settings.shareDate = e.target.checked; saveSettings(); });
+
+  // Keep the left column in view on desktop as its content changes
+  if (typeof ResizeObserver === 'function') new ResizeObserver(() => fitHeroCol()).observe($('.hero-col'));
+
   // History & resize
   window.addEventListener('popstate', () => { if (nav.mode === 'history') route(); });
   let rt = null;
@@ -4635,6 +6068,8 @@ function bindEvents(){
       if (state.route && state.route.name === 'edit') { autosize($('#fContent')); autosize($('#fMemo')); }
       autoScroll.recalc();
       updateReadProgress();
+      fitHeroCol();
+      if ($('#imgDlg').open) fitPreview();
     }, 160);
   });
   window.addEventListener('scroll', () => { updateToTop(); updateReadProgress(); }, { passive:true });
@@ -4694,6 +6129,7 @@ function boot(){
   bindEvents();
   route();                 // paints the app shell immediately
   loadDailyVerse();        // then fetches just today's book
+  if (settings.todaySrc === 'api') loadTodayApi();
   watchDayChange();
   refreshBackground();
   initCloud();             // connects, loads data, then routes to the real view
